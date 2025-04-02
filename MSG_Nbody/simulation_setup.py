@@ -136,7 +136,8 @@ def compute_escape_velocity(x, y, z, M):
 
     return escape_vel
 
-def concatenate_initial_conditions(pos_list, vel_list, mass_list, save_2_disk = False):
+def concatenate_initial_conditions(pos_list, vel_list,
+                                   mass_list, save_2_disk=False):
     '''
     concatenates the intial conditions of an arbitrary amount of galaxies
     Parameters
@@ -184,13 +185,10 @@ def concatenate_initial_conditions(pos_list, vel_list, mass_list, save_2_disk = 
             raise ValueError(error_message)
 
     # concatenate initial conditions
-    pos = np.concatenate(pos_list)
-    vel = np.concatenate(vel_list)
-    mass = np.concatenate(mass_list)
-    # create contiguous arrays
-    positions = np.ascontiguousarray(pos)
-    velocities = np.ascontiguousarray(vel)
-    masses = np.ascontiguousarray(mass)
+    positions = np.ascontiguousarray(np.concatenate(pos_list))
+    velocities = np.ascontiguousarray(np.concatenate(vel_list))
+    masses = np.ascontiguousarray(np.concatenate(mass_list))
+
     print(
         f'positions shape: {positions.shape}, velocities shape: {velocities.shape}, '
         f'masses shape: {masses.shape} total simulation mass: {np.sum(masses)}'

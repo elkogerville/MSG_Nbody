@@ -3,7 +3,7 @@ Author: Elko Gerville-Reache
 Date Created: 2023-05-20
 Date Modified: 2025-03-19
 Description:
-    function for the computation of the gravitational acceleration and potential 
+    function for the computation of the gravitational acceleration and potential
     experienced by a group of particles
 Dependencies:
     - numpy

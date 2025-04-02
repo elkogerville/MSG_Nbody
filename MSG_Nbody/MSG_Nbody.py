@@ -6,7 +6,6 @@ Description:
     function to simulate a group of particles under the influence of gravity
     given initial positions, velocities, and masses
 Dependencies:
-    - os
     - numpy
     - tqdm
 '''
@@ -16,7 +15,7 @@ import numpy as np
 from tqdm import tqdm
 from .simulation_setup import ascontiguousarray
 from .acceleration_potential import compute_accel_potential
-from .output import save_snapshot_2_binary_file, create_output_directory
+from .input_output import save_snapshot_2_binary_file, create_output_directory
 
 def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     '''
@@ -39,12 +38,18 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         integration errors but increase runtime
     timesteps: int
         number of timesteps to simulate
-    kwargs: dict
-        optional keyword arguments:
-        - 'snapshot_save_rate': int, optional (default: 10)
-            the frequency (in terms of timesteps) at which to save the
-            simulation snapshots. The simulation will save a snapshot every
-            'snapshot_save_rate' timesteps
+    kwargs
+    ------
+    snapshot_save_rate: int
+        the frequency (in terms of timesteps) at which simulation
+        snapshots are saved. if snapshot_save_rate = 10, a snapshot
+        will be saved to disk every 10 timesteps
+    start_idx: int
+        last computed timestep. allows for resuming an interrupted simulation
+        while ensuring that subsequent snapshots are named sequentially to the
+        last saved timestep. ex: if start_idx = 2000, the simulation will start
+        from timestep 2001. the initial conditions passed into MSG_Nbody should
+        be the positions and velocities of the particles at timestep 2000
     Returns
     -------
     None
@@ -60,8 +65,8 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         error_message = (
             "ERROR: Ensure 'gal_pos' and 'gal_vel' have shape (N, 3), "
             "and 'mass' has shape (N, 1), where N is the number of particles.\n"
-            f"provided shapes -> positions: {positions.shape}, velocities: {velocities.shape}, "
-            f"masses: {masses.shape}\n"
+            f"provided shapes -> positions: {positions.shape}, "
+            f"velocities: {velocities.shape}, masses: {masses.shape}\n"
             r"/ᐠ_ ꞈ _ᐟ\ <(Fix it...)"
         )
         raise SystemExit(error_message)
@@ -69,6 +74,9 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     snapshot_save_rate = 10
     if 'snapshot_save_rate' in kwargs:
         snapshot_save_rate = int(kwargs['snapshot_save_rate'])
+    start_idx = 1
+    if 'start_idx' in kwargs:
+        start_idx = int(kwargs['start_idx'])
     # ensure integer amount of timesteps
     timesteps = int(timesteps)
     directory = create_output_directory(N)
@@ -78,18 +86,26 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     softening_sq = softening**2
 
     # allocate acceleration matrix and ensure contiguous arrays
-    positions, velocities, masses, accel = ascontiguousarray(positions, velocities, masses)
+    positions, velocities, masses, accel = ascontiguousarray(positions,
+                                                             velocities,
+                                                             masses)
 
     # calculate initial accelerations
-    accel, potential = compute_accel_potential(positions, masses, accel, softening_sq, N)
-    # save initial conditions
+    accel, potential = compute_accel_potential(positions, masses, accel,
+                                               softening_sq, N)
+    # save initial conditions if starting from timestep = 0
     sim_snapshot = np.zeros((N, 7))
-    save_snapshot_2_binary_file(sim_snapshot, positions, velocities, potential, directory, N, 0)
-
+    if start_idx == 1:
+        save_snapshot_2_binary_file(sim_snapshot, positions, velocities,
+                                    potential, directory, N, 0)
+        np.save(f'masses_N{N}.npy', masses)
+    else:
+        timesteps += start_idx
+        start_idx += 1
     # simulation loop
     # ---------------
     print(r'simulation running....  /ᐠ –ꞈ –ᐟ\<[pls be patient]')
-    for i in tqdm(range(1, timesteps+1)):
+    for i in tqdm(range(start_idx, timesteps+1)):
         # 1/2 kick
         velocities += accel * dt/2.0
 
@@ -97,13 +113,14 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         positions += velocities * dt
 
         # update accelerations
-        accel, potential = compute_accel_potential(positions, masses, accel, softening_sq, N)
-
+        accel, potential = compute_accel_potential(positions, masses, accel,
+                                                   softening_sq, N)
         # update velocities
         velocities += accel * dt/2.0
 
         # write positions, velocities, and potential to binary file
         if i % snapshot_save_rate == 0:
-            save_snapshot_2_binary_file(sim_snapshot, positions, velocities, potential, directory, N, i)
+            save_snapshot_2_binary_file(sim_snapshot, positions, velocities,
+                                        potential, directory, N, i)
 
     return r'simulation complete [yay!!! (ﾐΦ ﻌ Φﾐ)✿ *ᵖᵘʳʳ*]'
