@@ -4,7 +4,8 @@ Date Created: 2025-03-17
 Date Modified: 2025-03-19
 Description:
     functions to manage the I/O operations of the simulation. creates a unique
-    directory to save snapshots and manages the snapshot file naming
+    directory to save snapshots and manages the snapshot file naming, as well as 
+    importing simulation snapshots into python
 Dependencies:
     - os
     - time
