@@ -329,7 +329,7 @@ def compute_hernquist_Ne(M, a, N_stars):
     # initialize storing array
     F_E = np.empty(len(center_bins))
     # loop through each energy level
-    for e in tqdm(range(N), desc = 'calculating f[E]'):
+    for e in tqdm(range(N), desc = 'calculating f(E)'):
         # calculate f[E] for current energy level e
         f_E = f(center_bins[e])
         # store f[E]
