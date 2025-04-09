@@ -20,6 +20,7 @@ $ pip install MSG_Nbody
 <div align="justify"> 
 
 ## see [Documentation](#documentation)
+For a guide on how to setup a simulation from start to finish, see the [MSG_Nbody Documentation Notebook]
 
 ## Uses
 The MSG_Nbody Python package offers an efficient, fully vectorized 3-dimensional NumPy implementation of the particle-particle N-body simulation algorithm which integrates the motion of stellar particles through space under their mutual gravitational attraction. Initial conditions of different galaxy models in equilibrium are provided, including a Hernquist spherical galaxy and a simple disk galaxy. The algorithm for generating spherical galaxy initial conditions of different masses and scale lengths is also provided for further customizations. Yet, any set of initial conditions can be used as inputs to the simulation code, which will integrate their motions and output snapshot files directly to a directory. On a reasonably powerful personal computer, the code can support up to ~20,000 - 30,000 particles with runtimes on the order of a couple of days, using the numba compiler. Lowering the number of particles (N<15,000) will yield computation times on the order of a couple minutes to a couple of hours. Therefore, the purpose of this package is to provide an accessible N-body simulation code in python that is simple to set up and modify yet still simulates the effects of gravity with reasonable accuracy. The package also comes with a fully integrated analysis toolkit to analyze simulation snapshots.
@@ -98,8 +99,11 @@ This would not have been possible without them. I would also like to thank my As
 
 
 # Documentation
+## Table of contents
+### [Simulation Setup](#simulation-setup)
+### [Running the Simulation](#running-the-simulation)
 
-Here we demonstrate the functionality of the package in greater detail. A simulation starts with the setup of initial conditions.
+Here is a demonstration of the functionality of the package in greater detail. A simulation starts with the setup of initial conditions.
 
 ```python
 from MSG_Nbody import *
@@ -110,10 +114,11 @@ from MSG_Nbody import *
 Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) method. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
 
 ```python
-glxy_pos, glxy_vel, glxy_mass = load_initial_conditions('initial_conditions/model_disk_3000')
+path_2_file = 'initial_conditions/model_disk_3000.txt'
+glxy_pos, glxy_vel, glxy_mass = load_initial_conditions(path_2_file)
 ```
 
-It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, we can scale our galaxy's mass and radius using the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) method.
+It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, to scale our galaxy's mass and radius, use the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) method.
 
 ```python
 # scale galaxy mass and radius by a factor of 10
@@ -129,6 +134,35 @@ We can also rotate the disk about a specified axis using a rotation matrix, whic
 glxy_pos, glxy_vel = rotate_disk(glxy_pos, glxy_vel, 45, 'y')
 ```
 
+We can compute the escape velocity at a point r=[x,y,z] from the center of mass of the galaxy using the [compute_escape_velocity](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L112) method.
 
+```python
+# escape velocity at point P a distance |P| from a galaxy centered at [0,0,0]
+P = [40,40,50]
+escape_velocity = compute_escape_velocity(P0[0], P0[1], P0[2], np.sum(glxy_mass))
+```
+
+The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L139) method allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
+```python
+# concatenate 3 sets of galaxy initial conditions, and save the resulting Nx7 initial conditions array to a .txt file
+# where N is the sum of the number of particles in each galaxy
+pos_list = [glxy1_pos, glxy2_pos, glxy3_pos]
+vel_list = [glxy1_vel, glxy2_vel, glxy3_vel]
+mass_list = [glxy1_mass, glxy2_mass, glxy3_mass]
+positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list, save_2_disk=True)
+```
+
+## **[Running the Simulation](MSG_Nbody/MSG_Nbody.py)**
+
+To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) method. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
+```python
+dt = 0.1
+timesteps = 2000
+MSG_nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
+```
+
+The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L16) method.
+
+## **[Simulation Analysis](MSG_Nbody/analysis.py)**
 
 </div>
