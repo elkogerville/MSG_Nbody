@@ -169,4 +169,23 @@ The gravitational acceleration and potential felt by each particle due to the in
 <a id="simulation-analysis"></a>
 # Simulation Analysis
 
+To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) method. This will separate each timestep into an arbitrary number of sub arrays.
+```python
+path_2_snapshots = 'simulation_outputs_N6000/*'
+# number of particles per galaxy
+N_particles = [3000, 3000]
+positions, velocities, potential = load_simulation_outputs(path_2_snapshots, N_particles)
+```
+
+To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L23) method.
+```python
+# shift all particles to simulation center of mass frame
+positions, velocities = shift_2_com_frame(positions, velocities, masses)
+# shift all particles to galaxy 1 center of mass frame
+# this centers everything around glxy1
+positions, velocities = shift_2_com_frame(positions, velocities, gxy1_mass, galaxy_idx=0)
+```
+
+
+
 </div>
