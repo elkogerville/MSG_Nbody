@@ -1,24 +1,16 @@
 # Merging Simulator for Galaxies [MSG]
 ## MSG_Nbody
 
-<div align="justify"> 
 
-<figure>
-  <img src="ANIMATIONS/ezgif-6475adeb9afc4b.gif" width="500" align = "left">
-</figure>
-
-<figure>
-  <img src="ANIMATIONS/ezgif-65d94a97da5a3c.gif" width="500" align = "right">
-</figure>
+<p align="center">
+  <img src="ANIMATIONS/ezgif-6475adeb9afc4b.gif" width="45%">
+  <img src="ANIMATIONS/ezgif-65d94a97da5a3c.gif" width="45%">
+</p>
 
 
+<div style="clear: both; margin-top: 20px;">
+  
 #### N-body simulation code using the particle-particle algorithm for studying galaxy mergers with particles on the order of ~10<sup>4</sup>
-
-
-
-
-
-
 
 ## Installation
 ```
@@ -29,8 +21,6 @@ $ pip install MSG_Nbody
 
 ## Uses
 The MSG_Nbody Python package offers an efficient, fully vectorized 3-dimensional NumPy implementation of the particle-particle N-body simulation algorithm which integrates the motion of stellar particles through space under their mutual gravitational attraction. Initial conditions of different galaxy models in equilibrium are provided, including a Hernquist spherical galaxy and a simple disk galaxy. The algorithm for generating spherical galaxy initial conditions of different masses and scale lengths is also provided for further customizations. Yet, any set of initial conditions can be used as inputs to the simulation code, which will integrate their motions and output snapshot files directly to a directory. On a reasonably powerful personal computer, the code can support up to ~20,000 - 30,000 particles with runtimes on the order of a couple of days, using the numba compiler. Lowering the number of particles (N<15,000) will yield computation times on the order of a couple minutes to a couple of hours. Therefore, the purpose of this package is to provide an accessible N-body simulation code in python that is simple to set up and modify yet still simulates the effects of gravity with reasonable accuracy. The package also comes with a fully integrated analysis toolkit to analyze simulation snapshots.
-
-
 
 ## Documentation and How to Use
 For an in-depth documentation review please see the 'Documentation_and_Startup_Guide' jupyter notebook in the 'Tests' directory. This is an overview of how to set up and run an N-body simulation between two colliding disk galaxies with 6,000 total particles. In the 'Tests' folder there are numerous programs for the user to try, including jupyter notebook guides as well as Python programs to run from the terminal. The 'Generate_Spherical_Galaxy_Conditions' notebook demonstrates how to use the spherical_galaxy() function to generate initial conditions for a spherically symmetric galaxy. The N-body simulation code is flexible, however, and can take any set of initial conditions in the form of NumPy arrays as inputs. The code below demonstrates a simple 1:1 merger between two Hernquist spherical galaxies.
