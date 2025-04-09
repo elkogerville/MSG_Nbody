@@ -770,14 +770,6 @@ def plot_density_histogram(positions, timestep, axes, sort=False,
     dpi: int
         dpi of saved figure
     '''
-    # if len(axes) != 2:
-    #     error = ('projection axes must be a list of length 2 \n'
-    #              'ex: [0,1] would specify x,y projection')
-    #     raise ValueError(error)
-    # if axes[0] not in {0,1,2} or axes[1] not in {0,1,2}:
-    #     raise ValueError("projection axes must contain values from 0,1,2 only")
-    # if axes[0] == axes[1]:
-    #     raise ValueError("projection axes must contain two distinct axes")
     error_handling_axes(axes)
     axes = [int(x) for x in axes]
     timestep = int(timestep)
