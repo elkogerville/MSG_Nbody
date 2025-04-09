@@ -20,7 +20,7 @@ $ pip install MSG_Nbody
 <div align="justify"> 
 
 ## see [Documentation](#documentation)
-For a guide on how to setup a simulation from start to finish, see the [MSG_Nbody Documentation Notebook]
+For a guide on how to setup a simulation from start to finish, see the [MSG_Nbody Documentation Notebook](Tests/MSG_Nbody_Documentation.ipynb)
 
 ## Uses
 The MSG_Nbody Python package offers an efficient, fully vectorized 3-dimensional NumPy implementation of the particle-particle N-body simulation algorithm which integrates the motion of stellar particles through space under their mutual gravitational attraction. Initial conditions of different galaxy models in equilibrium are provided, including a Hernquist spherical galaxy and a simple disk galaxy. The algorithm for generating spherical galaxy initial conditions of different masses and scale lengths is also provided for further customizations. Yet, any set of initial conditions can be used as inputs to the simulation code, which will integrate their motions and output snapshot files directly to a directory. On a reasonably powerful personal computer, the code can support up to ~20,000 - 30,000 particles with runtimes on the order of a couple of days, using the numba compiler. Lowering the number of particles (N<15,000) will yield computation times on the order of a couple minutes to a couple of hours. Therefore, the purpose of this package is to provide an accessible N-body simulation code in python that is simple to set up and modify yet still simulates the effects of gravity with reasonable accuracy. The package also comes with a fully integrated analysis toolkit to analyze simulation snapshots.
