@@ -43,7 +43,7 @@ The N-body problem in astrophysics attempts to solve the motion of $N$ bodies th
 
 
 <figure>
-  <img src="ANIMATIONS/ezgif-65d94a97da5a3c.gif" width="1000" align="center">
+  <img src="ANIMATIONS/ezgif-65d94a97da5a3c.gif" width="500" align = "right">
 </figure>
 
 
