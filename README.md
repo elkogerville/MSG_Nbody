@@ -153,7 +153,7 @@ mass_list = [glxy1_mass, glxy2_mass, glxy3_mass]
 positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list, save_2_disk=True)
 ```
 
-## **[Running the Simulation](MSG_Nbody/MSG_Nbody.py)**
+## Running the Simulation
 
 To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) method. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
 ```python
