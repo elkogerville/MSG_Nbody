@@ -111,7 +111,7 @@ from MSG_Nbody import *
 ```
 
 <a id="simulation-setup"></a>
-## Simulation Setup
+# Simulation Setup
 
 Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) method. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
 
@@ -155,7 +155,7 @@ positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_lis
 ```
 
 <a id="running-the-simulation"></a> 
-## Running the Simulation
+# Running the Simulation
 
 To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) method. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
 ```python
@@ -167,6 +167,6 @@ MSG_nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
 The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L16) method.
 
 <a id="simulation-analysis"></a>
-## Simulation Analysis
+# Simulation Analysis
 
 </div>
