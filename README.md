@@ -52,7 +52,7 @@ $$t_{relax}\simeq\frac{N}{8lnN}\frac{R}{v}  \qquad (1) \qquad g_{i} = G\sum_{j}^
 Because this algorithm calculates the gravitational force from each particle onto each particle resulting in O($N^2$) calculations, the number of particles must be kept down. Thus the dark matter halo, central bulge and black hole, as well as gas particles, which are important components of galaxies are completely omitted in these simulations.
 
 <figure>
-  <img src="IMAGES/sim2_pvd_t0_(0_-1_0).png" width="1000" align = 'center'>
+  <img src="ANIMATIONS/sim2_pvd_t0_(0_-1_0).png" width="1000" align = 'center'>
 </figure>
 
 
