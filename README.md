@@ -95,4 +95,38 @@ This would not have been possible without them. I would also like to thank my As
 </figure>
 
 
+# Documentation
+
+Here we demonstrate the functionality of the package in greater detail. A simulation starts with the setup of initial conditions.
+
+```python
+from MSG_Nbody import *
+```
+
+## **[Simulation Setup](MSG_Nbody/simulation_setup.py)**
+
+Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) method. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
+
+```python
+glxy_pos, glxy_vel, glxy_mass = load_initial_conditions('initial_conditions/model_disk_3000')
+```
+
+It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, we can scale our galaxy's mass and radius using the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) method.
+
+```python
+# scale galaxy mass and radius by a factor of 10
+new_radius = 10
+new_mass = 10
+glxy_pos, glxy_vel, glxy_mass = scale_initial_positions(glxy_pos, glxy_vel, glxy_mass, new_radius, new_mass)
+```
+
+We can also rotate the disk about a specified axis using a rotation matrix, which will rotate the disk around the $x, y,$ or $z$ axis with the [rotate_disk](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L68) method.
+
+```python
+# 45º rotation around y axis
+glxy_pos, glxy_vel = rotate_disk(glxy_pos, glxy_vel, 45, 'y')
+```
+
+
+
 </div>
