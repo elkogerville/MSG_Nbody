@@ -31,8 +31,8 @@ For an in-depth overview of how to use MSG_Nbody, please see the [MSG_Nbody Docu
 ```python
 from MSG_Nbody import *
 # load initial conditions
-gal1_pos, gal1_vel, gal1_mas = load_initial_conditions('initial_conditions/sphr_galaxy_N13000.txt')
-gal2_pos, gal2_vel, gal2_mas = load_initial_conditions('initial_conditions/sphr_galaxy_N10000.txt')
+gal1_pos, gal1_vel, gal1_mas = load_initial_conditions('Initial_Conditions/sphr_galaxy_N13000.txt')
+gal2_pos, gal2_vel, gal2_mas = load_initial_conditions('Initial_Conditions/sphr_galaxy_N10000.txt')
 
 # move perturber galaxy away from host galaxy and set it on collision path
 gal2_pos += [40, 40, 0]
