@@ -101,9 +101,9 @@ This would not have been possible without them. I would also like to thank my As
 
 # Documentation
 ## Table of contents
-### [Simulation Setup](#simulation-setup-1)
-### [Running the Simulation](#running-the-simulation-1)
-### [Simulation Analysis](#simulation-analysis-1)
+### - [Simulation Setup](#simulation-setup-1)
+### - [Running the Simulation](#running-the-simulation-1)
+### - [Simulation Analysis](#simulation-analysis-1)
 
 Here is a demonstration of the functionality of the package in greater detail. A simulation starts with the setup of initial conditions.
 
