@@ -19,7 +19,8 @@ $ pip install MSG_Nbody
 
 <div align="justify"> 
 
-## see [Documentation](#documentation)
+
+## See [Documentation](#documentation)
 For a guide on how to setup a simulation from start to finish, see the [MSG_Nbody Documentation Notebook](Tests/MSG_Nbody_Documentation.ipynb).
 
 ## Uses
