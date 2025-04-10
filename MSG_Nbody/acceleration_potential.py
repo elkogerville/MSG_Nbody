@@ -12,8 +12,9 @@ Dependencies:
 import numpy as np
 from numba import njit
 
-@njit()
-def compute_accel_potential(pos, mass, accel, softening_sq, N):
+# compute acceleration in parallel, with no_nan and no_inf optimization flags
+@njit(parallel=True, fastmath={'nnan', 'ninf'})
+def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     '''
     computes the gravitational acceleration and potential for each particle due
     to all others using softened Newtonian gravity
@@ -26,10 +27,13 @@ def compute_accel_potential(pos, mass, accel, softening_sq, N):
     accel: np.ndarray[np.float64]
         Nx3 array to store the computed gravitational acceleration [ax, ay, az]
         for each particle
+    potential: np.ndarray[np.float64]
+        Nx1 array to store the computed gravitational potential phi for each
+        particle
     softening_sq: float
         square of softening length to prevent division by zero and to define the
         simulation resolution
-        sqrt(softening) is the closest encounter the simulation can resolve
+        sqrt(softening_sq) defines the smallest resolvable scale of interaction
     N: int
         number of particles in simulation
     Returns
@@ -43,9 +47,12 @@ def compute_accel_potential(pos, mass, accel, softening_sq, N):
     '''
     G = 1
     # seperate position into x,y,z components
-    x = pos[:, 0:1]
-    y = pos[:, 1:2]
-    z = pos[:, 2:3]
+    x = np.ascontiguousarray(pos[:, 0]).reshape(N, 1)
+    y = np.ascontiguousarray(pos[:, 1]).reshape(N, 1)
+    z = np.ascontiguousarray(pos[:, 2]).reshape(N, 1)
+    # x = pos[:, 0:1]
+    # y = pos[:, 1:2]
+    # z = pos[:, 2:3]
     # calculate particle-particle seperations
     delx = x.T - x
     dely = y.T - y
@@ -58,10 +65,13 @@ def compute_accel_potential(pos, mass, accel, softening_sq, N):
     accel[:, 2:3] = G * np.dot((delz * inv_r3), mass)
 
     # calculate (N x N) particle-particle potential matrix
-    potential_N = (G * mass.T) / r
+    # potential_N = (G * mass.T) / r
+    potential_N = (G * mass.reshape(1, N)) / r
     # set diagonal elements to zero
     # these represent the potential of a particle onto itself which is unphysical
     np.fill_diagonal(potential_N, 0.0)
-    potential = np.sum(potential_N, axis = 0).reshape(N, 1)
+    potential[:] = np.sum(potential_N, axis=0).reshape(N, 1)
+    #potential = np.sum(potential_N, axis = 0).reshape(N, 1)
 
     return accel, potential
+
