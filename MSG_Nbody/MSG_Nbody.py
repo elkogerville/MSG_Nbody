@@ -86,13 +86,14 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     softening_sq = softening**2
 
     # allocate acceleration matrix and ensure contiguous arrays
-    positions, velocities, masses, accel = ascontiguousarray(positions,
-                                                             velocities,
-                                                             masses)
+    positions, velocities, masses, accel, potential = ascontiguousarray(positions,
+                                                                        velocities,
+                                                                        masses)
 
     # calculate initial accelerations
     accel, potential = compute_accel_potential(positions, masses, accel,
-                                               softening_sq, N)
+                                               potential, softening_sq, N)
+
     # save initial conditions if starting from timestep = 0
     sim_snapshot = np.zeros((N, 7))
     if start_idx == 1:
@@ -114,7 +115,7 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
 
         # update accelerations
         accel, potential = compute_accel_potential(positions, masses, accel,
-                                                   softening_sq, N)
+                                                   potential, softening_sq, N)
         # update velocities
         velocities += accel * dt/2.0
 
