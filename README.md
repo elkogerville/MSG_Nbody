@@ -102,7 +102,7 @@ This would not have been possible without them. I would also like to thank my As
 ## Table of contents
 ### [Simulation Setup](#simulation-setup)
 ### [Running the Simulation](#running-the-simulation)
-### [Simulation Analysis](#simulation-analysis)
+### [Simulation Analysis](#simulation-analysis-1)
 
 Here is a demonstration of the functionality of the package in greater detail. A simulation starts with the setup of initial conditions.
 
@@ -166,7 +166,7 @@ MSG_nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
 
 The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L16) method.
 
-<a id="simulation-analysis"></a>
+<a id="simulation-analysis-1"></a>
 ## Simulation Analysis
 
 To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) method. This will separate each timestep into an arbitrary number of subarrays. Each returned object is a list of len(N_particles) containing the separated position, velocity, and potential array of each galaxy. The arrays each have shapes TxNx3 for positions and velocities, and TxNx1 for masses, where T is the number of timesteps.
