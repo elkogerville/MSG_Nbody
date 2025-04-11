@@ -164,3 +164,6 @@ def error_handling_axes(axes):
         raise ValueError("projection axes must contain values from 0,1,2 only")
     if axes[0] == axes[1]:
         raise ValueError("projection axes must contain two distinct axes")
+    axes = [int(x) for x in axes]
+
+    return axes
