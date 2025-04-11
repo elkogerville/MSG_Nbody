@@ -95,7 +95,7 @@ I would like to thank Professor Jeffrey Kenney, Professor Marla Geha, and Shasha
 This would not have been possible without them. I would also like to thank my Astro Big-Sib Sebastian Monzon and Barry Chiang for helping me out with running the simulations. 
 
 <figure>
-  <img src="ANIMATIONS/sim3_grid3x3_dark.png" width="1000" height="1000" align = 'center'>
+  <img src="ANIMATIONS/sim3_gridplot_dark.png" width="1000" height="9000" align = 'center'>
 </figure>
 
 
