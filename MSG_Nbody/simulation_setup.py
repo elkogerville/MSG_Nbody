@@ -1,15 +1,21 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-03-17
-Date Modified: 2025-03-19
+Date Modified: 2025-04-11
 Description:
     functions to handle simulation setup, such as loading initial conditions,
     rotating particle positions and velocities, and merging arrays
 Dependencies:
     - numpy
+    - matplotlib
+    - tqdm
 '''
 
 import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from .acceleration_potential import compute_accel_potential
+from .analysis import set_plot_colors
 
 def load_initial_conditions(filename):
     '''
@@ -136,6 +142,110 @@ def compute_escape_velocity(x, y, z, M):
 
     return escape_vel
 
+def plot_orbital_trajectory(positions, velocities, masses, timesteps,
+                            dt, scale=100, plot_glxys=False, dark_mode=False):
+    '''
+    Plot orbital trajectory of a galaxy merger by computing a point mass
+    N-body simulation representing the galaxies involved in the merger
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of Nx3 arrays of positions, where N is the number of
+        particles per galaxy, and 3 is the number of dimensions
+    velocities: list of np.ndarray[np.float64]
+        list of Nx3 arrays of velocities, N is the number of
+        particles per galaxy, and 3 is the number of dimensions
+    masses: list of np.ndarray[np.float64]
+        list of Nx1 arrays of masses, where N is the number of
+        particles per galaxy, and 3 is the number of dimensions
+    timesteps: int
+        number of timesteps to integrate
+    dt: float
+        time step size for advancing the simulation. smaller values reduce
+        integration errors but increase runtime
+    scale: float
+        defines the half-width of the plotting region. the x and y limits
+        will be set to (-scale, scale)
+    display_gal: boolean
+        if True, will plot the galaxies in the plot
+    '''
+    timesteps = int(timesteps)
+    # determine initial conditions from COM
+    # loop through each galaxy and compute COM
+    pos_com, vel_com, gal_mass = [], [], []
+    for (pos, vel, mass) in zip(positions, velocities, masses):
+        total_mass = np.sum(mass)
+        com = np.sum(pos*mass, axis=0)/total_mass
+        com_v = np.sum(vel*mass, axis=0)/total_mass
+        pos_com.append(com)
+        vel_com.append(com_v)
+        gal_mass.append(total_mass)
+
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig, ax = plt.subplots(1,2, figsize=(10,5))
+            for a in ax:
+                a.minorticks_on()
+                a.tick_params(axis='both', length=3, direction='in',
+                              which='both', right=True, top=True)
+                a.set_xlim(-scale, scale)
+                a.set_ylim(-scale, scale)
+                a.set_xlabel(r'X', size=17)
+            ax[0].set_ylabel(r'Y', size=17)
+            ax[1].set_ylabel(r'Z', size=17)
+            # initialize nbody arrays
+            pos_com, vel_com, gal_mass, accel, _ = ascontiguousarray(np.asarray(pos_com),
+                                                                     vel_com, gal_mass)
+            softening_sq = 0.1**2
+            N = pos_com.shape[0]
+            # compute initial acceleration
+            accel, potential = compute_accel_potential(pos_com, gal_mass, accel,
+                                                       _, softening_sq, N)
+            # set plot colors
+            pos_com, colors = set_plot_colors(pos_com, False,
+                                              cmap='rainbow_r',
+                                              trim=True,
+                                              dark_mode=dark_mode)
+            # nbody simulation loop
+            for i in tqdm(range(timesteps)):
+                # 1/2 kick
+                vel_com += accel * dt/2.0
+
+                # drift
+                pos_com += vel_com * dt
+
+                # update accelerations
+                accel, potential = compute_accel_potential(pos_com, gal_mass,
+                                                           accel, _,
+                                                           softening_sq, N)
+                # update velocities
+                vel_com += accel * dt/2.0
+                # overplot timestep
+                ax[0].scatter(pos_com[:,0], pos_com[:,1], s=0.1, c=colors)
+                ax[1].scatter(pos_com[:,0], pos_com[:,2], s=0.1, c=colors)
+            # plot last timestep markers
+            ax[0].scatter(pos_com[:,0], pos_com[:,1], s=120, c=colors,
+                          marker='*', edgecolors=colors[::-1])
+            ax[1].scatter(pos_com[:,0], pos_com[:,2], s=120, c=colors,
+                          marker='*', edgecolors=colors[::-1])
+            # plot each galaxy initial conditions if true
+            if plot_glxys:
+                for i, (pos, vel, mass) in enumerate(zip(positions,
+                                                         velocities,
+                                                         masses)):
+                    ax[0].scatter(pos[:,0], pos[:,1], color=colors[i],
+                                  s=3, alpha=0.05, zorder=0)
+                    ax[1].scatter(pos[:,0], pos[:,2], color=colors[i],
+                                  s=3, alpha=0.05, zorder=0)
+            plt.tight_layout()
+
+            plt.show()
+
 def concatenate_initial_conditions(pos_list, vel_list,
                                    mass_list, save_2_disk=False):
     '''
@@ -224,9 +334,10 @@ def ascontiguousarray(positions, velocities, masses):
         contiguous Nx3 array of zeros to store particle accelerations
     '''
     N = positions.shape[0]
-    positions = np.ascontiguousarray(positions)
-    velocities = np.ascontiguousarray(velocities)
-    masses = np.ascontiguousarray(masses)
+    positions = np.ascontiguousarray(positions).reshape(N,3)
+    velocities = np.ascontiguousarray(velocities).reshape(N,3)
+    masses = np.ascontiguousarray(masses).reshape(N,1)
     accel = np.ascontiguousarray(np.zeros((N, 3)))
+    potential = np.ascontiguousarray(np.zeros((N, 1)))
 
-    return positions, velocities, masses, accel
+    return positions, velocities, masses, accel, potential
