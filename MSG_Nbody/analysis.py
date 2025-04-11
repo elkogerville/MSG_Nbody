@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-03-17
-Date Modified: 2025-04-02
+Date Modified: 2025-04-11
 Description:
     functions to analyze simulation outputs such as plotting snapshots or
     energy distributions
@@ -80,8 +80,93 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
 
     return positions, velocities
 
-def display_galaxies(positions, timestep, sort=False,
-                     scale=100, savefig=False, dpi=300):
+def plot_2D(pos, t, axes, scale=50, cmap=False, sort=False,
+            snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
+    '''
+    Plot a 2D projection of a simulation snapshot
+    Parameters
+    ----------
+    pos: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    t: int
+        timestep to plot. because the simulation only saves a snapshot every
+        'snapshot_save_rate', the total number of recorded timesteps is
+        timesteps/snapshot_save_rate. thus, a simulation ran for 2000 timesteps
+        with snapshot_save_rate = 10 will only have 200 timesteps to plot
+    axes: list of int
+        list or array of length 2 specifying which two axes
+        (0 for x, 1 for y, 2 for z) should be used for the projection.
+        ex: axes = [0,1] would specify the xy projection
+    scale: float
+        defines the half-width of the plotting region. the x and y limits
+        will be set to (-scale, scale)
+    cmap: list of np.ndarray[np.float64]
+        is False by default. if provided with a list of same length as pos,
+        containing either 'False' or a (N,) shaped array of values, will set
+        the color of each galaxy with a cmap based on the values provided.
+        ex: use a cmap on the first galaxy but not the second
+        the cmap is mapped to the vx component of the first galaxy at t = 0
+        cmap = [velocities[0][t][:,0], False]
+    snapshot_save_rate: int
+        the frequency (in terms of timesteps) at which simulation
+        snapshots are saved. is used to convert from timestep index
+        to actual simulation timestep. by default is set to 10.
+        this should match the value of the simulation snapshot_save_rate
+    savefig: boolean
+        saves the figure to the working directory if True
+    dpi: int
+        dpi of saved figure
+    '''
+    axes = error_handling_axes(axes)
+    t = int(t)
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            figsize = (6,6) if not cmap else (6.3, 5)
+            fig, ax = plt.subplots(figsize=figsize)
+            ax.minorticks_on()
+            ax.tick_params(axis='both', length=2, direction='in',
+                           which='both', right=True, top=True)
+            plt.rcParams['axes.linewidth'] = 0.6
+            plt.rcParams['font.family'] = 'Courier New'
+
+            pos, colors = set_plot_colors(pos, sort, dark_mode=dark_mode)
+            ax1, ax2 = axes
+            ax_labels = ['X', 'Y', 'Z']
+            if cmap == False:
+                cmap = [False for x in pos]
+            for i, galaxy in enumerate(pos):
+                if np.all(cmap[i]) != False:
+                    im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
+                                    s=0.5, c=cmap[i], cmap='RdPu_r')
+                    cbar = fig.colorbar(im, ax=ax)
+                    cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                else:
+                    ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
+                               s=0.5, color=colors[i])
+
+            plt.text(scale/1.8, scale/1.2, 't = {}'.format(t*snapshot_save_rate),
+                     bbox=dict(boxstyle="round", ec=(1, 1, 1),fc=(1., 1, 1),))
+
+            ax.set_xlim(-scale, scale)
+            ax.set_ylim(-scale, scale)
+            ax.set_xlabel(ax_labels[ax1], size = 16)
+            ax.set_ylabel(ax_labels[ax2], size = 16)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
+
+            plt.show()
+
+def display_galaxies(positions, timestep, sort=False, scale=100,
+                     savefig=False, dpi=300, dark_mode=False):
     '''
     Plot the xy and xz projections of a simulation snapshot
     Parameters
@@ -90,11 +175,13 @@ def display_galaxies(positions, timestep, sort=False,
         list of TxNx3 arrays of positions, where T is the number
         of timesteps, N is the number of particles per galaxy,
         and 3 is the number of dimensions
-    timestep: int
+    timestep: int or Boolean
         timestep to plot. because the simulation only saves a snapshot every
         'snapshot_save_rate', the total number of recorded timesteps is
         timesteps/snapshot_save_rate. thus, a simulation ran for 2000 timesteps
-        with snapshot_save_rate = 10 will only have 200 timesteps to plot
+        with snapshot_save_rate = 10 will only have 200 timesteps to plot.
+        if False, will allow user to plot initial simulation distribution
+        when no timesteps have been calculated
     sort: boolean
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
@@ -109,55 +196,58 @@ def display_galaxies(positions, timestep, sort=False,
     dpi: int
         dpi of saved figure
     '''
-    timestep = int(timestep)
-    with plt.rc_context({
-        'axes.linewidth': 0.6,
-        'font.family': ['Courier New', 'DejaVu Sans Mono'],
-        'mathtext.default': 'regular'
-    }):
-        # setup figure with 2 subplots for xy and xz projections
-        fig, ax = plt.subplots(1,2, figsize=(10,5))
-        # format axes, minorticks, fonts, and plot colors
-        for a in ax:
-            a.minorticks_on()
-            a.tick_params(axis='both', length=3, direction='in',
-                which='both', right=True, top=True)
-            a.set_xlim(-scale, scale)
-            a.set_ylim(-scale, scale)
-            a.set_xlabel(r'X', size=16)
-        ax[0].set_ylabel(r'Y', size=16)
-        ax[1].set_ylabel(r'Z', size=16)
-        colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-        # if sort=True, concatenate list of positions into 1 array
-        if sort:
-            positions = [np.concatenate(tag_particles(positions), axis=1)]
-        else:
-            # if more galaxies than colors, generate new list of colors
-            if len(positions) > len(colors):
-                cmap = plt.get_cmap('turbo')
-                colors = [cmap(i) for i in np.linspace(0, 1, len(positions))]
+    # if only 1 timestep provided (avoids program from breaking)
+    if timestep == None:
+        positions = [pos[np.newaxis,:,:] for pos in positions]
+        timestep = 0
+    else:
+        timestep = int(timestep)
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            # setup figure with 2 subplots for xy and xz projections
+            fig, ax = plt.subplots(1,2, figsize=(10,5))
+            # format axes, minorticks, fonts, and plot colors
+            for a in ax:
+                a.minorticks_on()
+                a.tick_params(axis='both', length=3, direction='in',
+                    which='both', right=True, top=True)
+                a.set_xlim(-scale, scale)
+                a.set_ylim(-scale, scale)
+                a.set_xlabel(r'X', size=16)
+            ax[0].set_ylabel(r'Y', size=16)
+            ax[1].set_ylabel(r'Z', size=16)
+            # set plot colors
+            positions, colors = set_plot_colors(positions, sort,
+                                                dark_mode=dark_mode)
 
-        # plot each array in the galaxies list
-        for i, galaxy in enumerate(positions):
-            if sort:
-                for i, proj_axes in enumerate([[0,1], [0,2]]):
-                    sorted_pos, c_arr, a_arr, _ = sort_positions(galaxy, timestep,
-                                                                 proj_axes, colors)
-                    ax[i].scatter(sorted_pos[:,0], sorted_pos[:,i+1],
-                                  s=0.1, color=c_arr, alpha=a_arr)
-            else:
-                # plot x,y projection
-                ax[0].scatter(galaxy[timestep,:,0], galaxy[timestep,:,1],
-                              s=0.05, color=colors[i], alpha=0.9)
-                # plot x,z projection
-                ax[1].scatter(galaxy[timestep,:,0], galaxy[timestep,:,2],
-                              s=0.05, color=colors[i], alpha=0.9)
-        plt.tight_layout()
-        # if savefig is True, save figure to directory
-        if savefig:
-            save_figure_2_disk(dpi)
+            # plot each array in the galaxies list
+            for i, galaxy in enumerate(positions):
+                if sort:
+                    for i, proj_axes in enumerate([[0,1], [0,2]]):
+                        sorted_pos, c_arr, a_arr, _ = sort_positions(galaxy,
+                                                                     timestep,
+                                                                     proj_axes,
+                                                                     colors)
+                        ax[i].scatter(sorted_pos[:,0], sorted_pos[:,i+1],
+                                      s=0.1, color=c_arr, alpha=a_arr)
+                else:
+                    # plot x,y projection
+                    ax[0].scatter(galaxy[timestep,:,0], galaxy[timestep,:,1],
+                                  s=0.05, color=colors[i], alpha=0.9)
+                    # plot x,z projection
+                    ax[1].scatter(galaxy[timestep,:,0], galaxy[timestep,:,2],
+                                  s=0.05, color=colors[i], alpha=0.9)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
 
-        plt.show()
+            plt.show()
 
 def compute_relative_energy(velocities, potentials):
     '''
@@ -195,7 +285,7 @@ def compute_relative_energy(velocities, potentials):
 
 def compute_hernquist_Ne(M, a, N_stars):
     '''
-    computes the N[E] profile of an analytical hernquist galaxy. this computes
+    Computes the N[E] profile of an analytical hernquist galaxy. this computes
     the number of particles at a given energy level for each energy level
     Parameters
     ----------
@@ -214,7 +304,7 @@ def compute_hernquist_Ne(M, a, N_stars):
     '''
     def compute_rho(r, M, a):
         '''
-        computes hernquist density profile ρ(r) for spherically symmetric galaxies
+        Computes hernquist density profile ρ(r) for spherically symmetric galaxies
         Parameters
         ----------
         r: np.ndarray[np.float64]
@@ -234,7 +324,7 @@ def compute_hernquist_Ne(M, a, N_stars):
 
     def compute_phi(r, M, a):
         '''
-        computes hernquist potential ϕ(r) for a spherically symmetric galaxy
+        Computes hernquist potential ϕ(r) for a spherically symmetric galaxy
         Parameters
         ----------
         r: np.ndarray[np.float64]
@@ -255,7 +345,7 @@ def compute_hernquist_Ne(M, a, N_stars):
 
     def interp_d2rdp2(psi_value):
         '''
-        interpolates second derivative of psi
+        Interpolates second derivative of psi
         Parameters
         ----------
         psi_value: float
@@ -272,7 +362,7 @@ def compute_hernquist_Ne(M, a, N_stars):
 
     def fE_integrand(psi, e):
         '''
-        computes the eddington inversion integrand at a given Ψ and energy value
+        Computes the eddington inversion integrand at a given Ψ and energy value
         Parameters
         ----------
         psi: float
@@ -290,9 +380,9 @@ def compute_hernquist_Ne(M, a, N_stars):
 
     def f(E):
         '''
-        integrates the distribution function from 0 to a given energy level E
+        Integrates the distribution function from 0 to a given energy level E
                  1    E   d²ρ    1
-        f[E] = ––––– ∫   ––––– ––––– dΨ
+        f(E) = ––––– ∫   ––––– ––––– dΨ
                 √8π² ⁰    dΨ²  √(E-Ψ)
         scipy.quad will generate psi values in between 0 and E to interpolate
         at to compute d²ρ/dΨ²
@@ -341,6 +431,9 @@ def compute_hernquist_Ne(M, a, N_stars):
     def integrand(r, e, M, a):
         return np.sqrt(2*(-compute_phi(r, M, a) - e)) * r**2
     def g(e, M, a):
+        '''
+        Computes the density of states g(E) with scipy.quad integration
+        '''
         rm = r_m(e, M, a)
         return 16*np.pi**2 * (quad(integrand, 0.001, rm, args = (e, M, a))[0])
 
@@ -360,7 +453,7 @@ def compute_hernquist_Ne(M, a, N_stars):
 
 def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
             bin_max=0.35, plot_hernquist=False, grayscale=False,
-            snapshot_save_rate=10, dpi=300):
+            snapshot_save_rate=10, dpi=300, dark_mode=False):
     '''
     Plot the energy distribution of particles across different timesteps
     on a log-log plot
@@ -399,69 +492,76 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
     dpi: int
         dpi of saved figure
     '''
-    with plt.rc_context({
-        'axes.linewidth': 0.6,
-        'font.family': ['Courier New', 'DejaVu Sans Mono'],
-        'mathtext.default': 'regular'
-    }):
-        # Define colors
-        if grayscale:
-            colors = ['k' for k in range(6)]
-        else:
-            colors = ['k', '#483D8B', '#DC267F', '#42A27D', '#6A5ACD', '#91B515']
-        use_colorbar = len(timesteps) > len(colors)
-        # setup figure
-        figsize = (7,6) if use_colorbar else (6,6)
-        fig, ax = plt.subplots(figsize=figsize)
-        plt.minorticks_on()
-        plt.tick_params(axis='both', length=5, direction='in',
-                        which='both', right=True, top=True)
-        ls = ['-', '--', '-.', ':']
-        if use_colorbar:
-            cmap = cm.turbo
-            norm = mcolors.Normalize(vmin=min(timesteps) * snapshot_save_rate,
-                                     vmax=max(timesteps) * snapshot_save_rate)
-            # normalize timesteps
-            color_mapper = cm.ScalarMappable(norm=norm, cmap=cmap)
-            colors = [cmap(norm(t * snapshot_save_rate)) for t in timesteps]
-        if plot_hernquist:
-            print('Hernquist Galaxy Params:')
-            M = float(input('mass of galaxy M: '))
-            a = float(input('scale length of galaxy a: '))
-            N = float(input('number of particles N: '))
-            NE, centers = compute_hernquist_Ne(M, a, N)
-            plt.plot(centers, NE/np.max(NE), lw=0.9, c='#483D8B',
-                     label=f'Hernquist model \nM = {M}, a = {a}')
-        # plot histogram for each timestep
-        for i, (t, color) in enumerate(zip(timesteps, colors)):
-            label = None if use_colorbar else f't = {t * snapshot_save_rate}'
-            bins = np.logspace(bin_min, bin_max, 65)
-            hist, edges = np.histogram(energy[t], bins=bins)
-            center = (edges[1:] + edges[:-1]) / 2
-            ax.step(center, hist / np.max(hist), color=color,
-                    lw=0.6, label=label, ls=ls[i%len(ls)])
-        # labels and scales
-        ax.set_xlabel('E', size=16)
-        ax.set_ylabel('N(E)', size=16)
-        ax.set_yscale('log')
-        ax.set_xscale('log')
-        # add a legend if not using colorbar
-        if not use_colorbar:
-            ax.legend(loc='upper left')
-        else:
-            if plot_hernquist == True:
+    # ensure timesteps is in list format
+    if isinstance(timesteps, int):
+        timesteps = [timesteps]
+    timesteps = [int(t) for t in timesteps]
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            # Define colors
+            if grayscale:
+                colors = ['k' for k in range(6)]
+            else:
+                colors = ['k', '#483D8B', '#DC267F', '#42A27D', '#6A5ACD', '#91B515']
+            use_colorbar = len(timesteps) > len(colors)
+            # setup figure
+            figsize = (7,6) if use_colorbar else (6,6)
+            fig, ax = plt.subplots(figsize=figsize)
+            plt.minorticks_on()
+            plt.tick_params(axis='both', length=5, direction='in',
+                            which='both', right=True, top=True)
+            ls = ['-', '--', '-.', ':']
+            if use_colorbar:
+                cmap = cm.turbo
+                norm = mcolors.Normalize(vmin=min(timesteps) * snapshot_save_rate,
+                                         vmax=max(timesteps) * snapshot_save_rate)
+                # normalize timesteps
+                color_mapper = cm.ScalarMappable(norm=norm, cmap=cmap)
+                colors = [cmap(norm(t * snapshot_save_rate)) for t in timesteps]
+            if plot_hernquist:
+                print('Hernquist Galaxy Params:')
+                M = float(input('mass of galaxy M: '))
+                a = float(input('scale length of galaxy a: '))
+                N = float(input('number of particles N: '))
+                NE, centers = compute_hernquist_Ne(M, a, N)
+                plt.plot(centers, NE/np.max(NE), c='mediumslateblue',
+                         label=f'Hernquist model \nM = {M}, a = {a}')
+            # plot histogram for each timestep
+            for i, (t, color) in enumerate(zip(timesteps, colors)):
+                label = None if use_colorbar else f't = {t * snapshot_save_rate}'
+                bins = np.logspace(bin_min, bin_max, 65)
+                hist, edges = np.histogram(energy[t], bins=bins)
+                center = (edges[1:] + edges[:-1]) / 2
+                ax.step(center, hist / np.max(hist), color=color,
+                        lw=0.6, label=label, ls=ls[i%len(ls)])
+            # labels and scales
+            ax.set_xlabel('E', size=16)
+            ax.set_ylabel('N(E)', size=16)
+            ax.set_yscale('log')
+            ax.set_xscale('log')
+            # add a legend if not using colorbar
+            if not use_colorbar:
                 ax.legend(loc='upper left')
-            cbar = fig.colorbar(color_mapper, ax = ax)
-            cbar.set_label("Timesteps", size = 13, rotation=270, labelpad=15)
-        plt.tight_layout()
-        # if savefig is True, save figure to directory
-        if savefig:
-            save_figure_2_disk(dpi)
+            else:
+                if plot_hernquist == True:
+                    ax.legend(loc='upper left')
+                cbar = fig.colorbar(color_mapper, ax = ax)
+                cbar.set_label("Timesteps", size = 13, rotation=270, labelpad=15)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
 
-        plt.show()
+            plt.show()
 
-def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1, b_shift=0,
-             transpose=False, snapshot_save_rate=10, savefig=False, dpi=300):
+def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
+             b_shift=0, transpose=False, snapshot_save_rate=10,
+             savefig=False, dpi=300, dark_mode=False):
     '''
     Generate a position-velocity diagram (PVD) for a system of particles by
     projecting particles onto a 2D plane orthogonal to the line-of-sight vector,
@@ -527,40 +627,52 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1, b_shift=0,
 
         return np.degrees(azimuth), np.degrees(elevation)
 
-    def project_particles(positions, los_vector):
+    def project_particles(positions, elev=0, azim=0):
         '''
-        Projects 3D particles onto 2D plane perpendicular to line
-        of sight vector
+        Projects 3D particles onto a 2D plane based on elevation and azimuth angles
+        to mimic Matplotlib's ax.view_init(elev, azim) functionality.
+
         Parameters
         ----------
         positions: np.ndarray[np.float64]
-            Nx3 array containing the [x, y, z] positions of all particles
-        los_vector: list of float
-            list or array of length 3 representing the line-of-sight direction as a
-            vector in 3D space. this is used to project the velocities along the
-            line of sight. the vector will automatically be normalized
+            Nx3 array containing the [x, y, z] positions of all particles.
+        elev: float
+            Elevation angle in degrees (rotation around x-axis).
+        azim: float
+            Azimuthal angle in degrees (rotation around z-axis).
+
         Returns
         -------
         projected_pos: np.ndarray[np.float64]
-            Nx2 array containing the projected particles
-        v: np.ndarray[np.float64]
-            1x3 array containing the x,y,z coordinates of the normalized
-            line of sight vector
+            Nx2 array containing the projected particles.
         '''
-        # normalize line of sight vector
-        v = np.asarray(los_vector, dtype=np.float64)
-        v /= np.linalg.norm(v)
-        # create orthogonal basis using Gram-Schmidt orthogonalization
-        if np.abs(v[0]) > 0.5:  # If x-component is dominant
-            u = np.array([0, 1, 0]) - v[1] * v  # Build from y-axis
-        else:
-            u = np.array([1, 0, 0]) - v[0] * v  # Build from x-axis
+        # Convert angles to radians
+        elev_rad = np.radians(elev)
+        azim_rad = np.radians(azim)
+
+        # Define the line-of-sight vector (Mimicking Matplotlib's camera)
+        v = np.array([
+            np.cos(elev_rad) * np.cos(azim_rad),
+            np.cos(elev_rad) * np.sin(azim_rad),
+            np.sin(elev_rad)
+        ])
+
+        # Define the "up" vector (default is +z direction)
+        up = np.array([0.0, 0.0, 1.0])
+
+        # Create orthonormal basis using Gram-Schmidt
+        u = np.cross(up, v)  # Right vector
+        if np.linalg.norm(u) < 1e-6:  # If u is too small (e.g., looking straight up/down)
+            u = np.array([1.0, 0.0, 0.0])  # Default to x-axis
         u /= np.linalg.norm(u)
-        w = np.cross(v, u)
-        # project particles
+
+        w = np.cross(v, u)  # Up vector
+        w /= np.linalg.norm(w)
+
+        # Project particles onto the new basis
         projected_pos = np.column_stack([positions @ u, positions @ w])
 
-        return projected_pos, v
+        return projected_pos
 
     def compute_density(x, y):
         '''
@@ -633,13 +745,35 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1, b_shift=0,
 
         return xmin, xmax, ymin, ymax
 
+    def make_square_limits(xmin, xmax, ymin, ymax):
+        '''
+        Expands the smaller range to match the larger one, ensuring equal aspect ratio.
+        '''
+        x_range = xmax - xmin
+        y_range = ymax - ymin
+        max_range = max(x_range, y_range)
+
+        x_center = (xmin + xmax) / 2
+        y_center = (ymin + ymax) / 2
+
+        # Define new equal limits centered at the original center
+        xmin_new = x_center - max_range / 2
+        xmax_new = x_center + max_range / 2
+        ymin_new = y_center - max_range / 2
+        ymax_new = y_center + max_range / 2
+
+        return xmin_new, xmax_new, ymin_new, ymax_new
+
     # index position and velocity by timestep
     pos = pos[timestep]
     vel = vel[timestep]
     N = pos.shape[0]
     # project particles onto plane orthagonal to line of sight
     # vector using Gram-Schmidt orthogonalization
-    pos_proj, los_vector = project_particles(pos, line_of_sight)
+    los_vector = np.asarray(line_of_sight, dtype=np.float64)
+    los_vector /= np.linalg.norm(los_vector)
+    azim, elev = los_to_angles(los_vector)
+    pos_proj = project_particles(pos, elev, azim)
     # compute best fit linear model on position
     linear_fit = np.polyfit(pos_proj[:,0], pos_proj[:,1], 1)
     line_best_fit = np.poly1d(linear_fit)
@@ -659,86 +793,88 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1, b_shift=0,
     v_los = np.dot(vel[los_mask], los_vector)
     los_label = f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f}, {los_vector[2]:.2f}]"
     # create plot
-    with plt.rc_context({
-        'axes.linewidth': 0.6,
-        'font.family': ['Courier New', 'DejaVu Sans Mono'],
-        'mathtext.default': 'regular'
-    }):
-        fig, ax = plt.subplots(1, 2, figsize=(13,4),
-                               gridspec_kw={'width_ratios': [1, 3]})
-        ax[0].minorticks_on()
-        ax[0].tick_params(axis='both', length=2, direction='in',
-                          which='both', right=True, top=True)
-        ax[1].minorticks_on()
-        ax[1].tick_params(axis='both', length=2,
-                          direction='in', labelright='on',
-                          labelleft=False,  right=True, top=True)
-        # plot real space
-        # ---------------
-        # plot both linear models
-        t = timestep*snapshot_save_rate
-        # plot entire projection of particles
-        ax[0].scatter(pos_proj[:, 0], pos_proj[:, 1], s=0.05, c='#DC267F')
-        # plot particles selected in mask
-        ax[0].scatter(pos_los[:,0], pos_los[:,1], s=0.05,
-                      c='darkslateblue', label=f't = {t}')
-        X, Y, Z = compute_density(pos_proj[:, 0], pos_proj[:, 1])
-        # get limits
-        xmin, xmax, ymin, ymax = compute_kde_limits(X, Y, Z)
-        # # set plot limits
-        ax[0].set_xlim(xmin, xmax)
-        ax[0].set_ylim(ymin, ymax)
-        x = np.arange(xmin, xmax, 0.1)
-        y = m*x + b
-        ax[0].plot(x, y+offset, color = 'mediumvioletred')
-        ax[0].plot(x, y-offset, color = 'mediumvioletred')
-        # plot legend
-        ax[0].legend(handlelength=0, handletextpad=0,
-                     fancybox=True, loc = 'best')
-        azim, elev = los_to_angles(los_vector)
-        ax[0].set_xlabel(fr'$\phi = {azim:.1f}^\circ$', size=16)
-        ax[0].set_ylabel(fr'$\theta = {elev:.1f}^\circ$', size=16)
-        # plot phase space
-        # ----------------
-        # plot position - velocity diagram
-        ax[1].yaxis.set_label_position('right')
-        axis = 0
-        if transpose:
-            axis = 1
-        ax[1].scatter(pos_los[:,axis], v_los, s = .1, c = 'darkslateblue')
-        # compute contours with gaussian kde kernel
-        X, Y, Z = compute_density(pos_los[:,axis], v_los)
-        cs = ax[1].contour(X, Y, Z, levels=np.logspace(-3,10,24),
-                           cmap='gray', alpha=.5)
-        # get limits from contour paths
-        if len(cs.allsegs) > 0:
-            all_verts = np.vstack([np.vstack(level_segs) for
-                                   level_segs in cs.allsegs if level_segs])
-            xmin, xmax = all_verts[:,0].min(), all_verts[:,0].max()
-            ymin, ymax = all_verts[:,1].min(), all_verts[:,1].max()
-            # add 5% padding
-            x_pad = 0.05 * (xmax - xmin)
-            y_pad = 0.05 * (ymax - ymin)
-            xmin, xmax = xmin - x_pad, xmax + x_pad
-            ymin, ymax = ymin - y_pad, ymax + y_pad
-        else:
-            # fallback if contouring failed
-            xmin, xmax = X.min(), X.max()
-            ymin, ymax = Y.min(), Y.max()
-        ax[1].set_xlim(xmin, xmax)
-        ax[1].set_ylim(ymin, ymax)
-        ax[1].set_xlabel(r'$X_{\perp LOS}$' , size=16)
-        ax[1].set_ylabel(r'V$_{LOS}$', size=16)
-        plt.title(los_label, size=14)
-        plt.tight_layout()
-        # if savefig is True, save figure to directory
-        if savefig:
-            save_figure_2_disk(dpi)
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig, ax = plt.subplots(1, 2, figsize=(13,4),
+                                   gridspec_kw={'width_ratios': [1, 3]})
+            ax[0].minorticks_on()
+            ax[0].tick_params(axis='both', length=2, direction='in',
+                              which='both', right=True, top=True)
+            ax[1].minorticks_on()
+            ax[1].tick_params(axis='both', length=2,
+                              direction='in', labelright='on',
+                              labelleft=False,  right=True, top=True)
+            # plot real space
+            # ---------------
+            # plot both linear models
+            t = timestep*snapshot_save_rate
+            # plot entire projection of particles
+            ax[0].scatter(pos_proj[:, 0], pos_proj[:, 1], s=0.05, c='#DC267F')
+            # plot particles selected in mask
+            ax[0].scatter(pos_los[:,0], pos_los[:,1], s=0.05,
+                          c='darkslateblue', label=f't = {t}')
+            X, Y, Z = compute_density(pos_proj[:, 0], pos_proj[:, 1])
+            # get limits
+            xmin, xmax, ymin, ymax = compute_kde_limits(X, Y, Z)
+            xmin, xmax, ymin, ymax = make_square_limits(xmin, xmax, ymin, ymax)
+            # # set plot limits
+            ax[0].set_xlim(xmin, xmax)
+            ax[0].set_ylim(ymin, ymax)
+            x = np.arange(xmin, xmax, 0.1)
+            y = m*x + b
+            ax[0].plot(x, y+offset, color = 'mediumvioletred')
+            ax[0].plot(x, y-offset, color = 'mediumvioletred')
+            # plot legend
+            ax[0].legend(handlelength=0, handletextpad=0,
+                         fancybox=True, loc = 'best')
+            ax[0].set_xlabel(fr'$\phi = {azim:.1f}^\circ$', size=16)
+            ax[0].set_ylabel(fr'$\theta = {elev:.1f}^\circ$', size=16)
+            # plot phase space
+            # ----------------
+            # plot position - velocity diagram
+            ax[1].yaxis.set_label_position('right')
+            axis = 0
+            if transpose:
+                axis = 1
+            ax[1].scatter(pos_los[:,axis], v_los, s = .1, c = 'darkslateblue')
+            # compute contours with gaussian kde kernel
+            X, Y, Z = compute_density(pos_los[:,axis], v_los)
+            cs = ax[1].contour(X, Y, Z, levels=np.logspace(-3,10,24),
+                               cmap='gray', alpha=.5)
+            # get limits from contour paths
+            if len(cs.allsegs) > 0:
+                all_verts = np.vstack([np.vstack(level_segs) for
+                                       level_segs in cs.allsegs if level_segs])
+                xmin, xmax = all_verts[:,0].min(), all_verts[:,0].max()
+                ymin, ymax = all_verts[:,1].min(), all_verts[:,1].max()
+                # add 5% padding
+                x_pad = 0.05 * (xmax - xmin)
+                y_pad = 0.05 * (ymax - ymin)
+                xmin, xmax = xmin - x_pad, xmax + x_pad
+                ymin, ymax = ymin - y_pad, ymax + y_pad
+            else:
+                # fallback if contouring failed
+                xmin, xmax = X.min(), X.max()
+                ymin, ymax = Y.min(), Y.max()
+            ax[1].set_xlim(xmin, xmax)
+            ax[1].set_ylim(ymin, ymax)
+            ax[1].set_xlabel(r'$X_{\perp LOS}$' , size=16)
+            ax[1].set_ylabel(r'V$_{LOS}$', size=16)
+            plt.title(los_label, size=14)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
 
-        plt.show()
+            plt.show()
 
-def plot_density_histogram(positions, timestep, axes, sort=False,
-                           scale=100, savefig=False, dpi=300):
+def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
+                           savefig=False, dpi=300, dark_mode=False):
     '''
     Plot an orthogonal projection of a timestep with log density histograms
     Parameters
@@ -770,102 +906,94 @@ def plot_density_histogram(positions, timestep, axes, sort=False,
     dpi: int
         dpi of saved figure
     '''
-    error_handling_axes(axes)
-    axes = [int(x) for x in axes]
+    axes = error_handling_axes(axes)
     timestep = int(timestep)
     labels = ['X', 'Y', 'Z']
-    with plt.rc_context({
-        'axes.linewidth': 0.6,
-        'font.family': ['Courier New', 'DejaVu Sans Mono'],
-        'mathtext.default': 'regular'
-    }):
-        fig = plt.figure(figsize=(6, 6))
-        # Adjust grid layout to prevent overlap
-        gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2), height_ratios=(1.2, 4),
-                              left=0.15, right=0.9, bottom=0.15, top=0.9,
-                              wspace=0.09, hspace=0.09)  # Reduced spacing
-        # create subplots
-        ax = fig.add_subplot(gs[1, 0])  # Main scatter plot
-        ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)  # Top histogram
-        ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)  # Right histogram
-        # configure scales and ticks
-        ax_histx.set_yscale('log')
-        ax_histy.set_xscale('log')
-        ax.minorticks_on()
-        # tick parameters for main plot
-        ax.tick_params(axis='both', length=2, direction='in', which='both',
-                       pad=5, right=True, top=True)  # Added pad
-        # tick parameters for top histogram (x-axis)
-        ax_histx.tick_params(axis='x', direction='in', which='both',
-                             labelbottom=False, bottom=True)
-        ax_histx.tick_params(axis='y', direction = 'in', which='both',
-                             left=True, right=True, labelleft=True, pad=5)
-        ax_histx.yaxis.set_label_position("left")
-        # tick parameters for right histogram (y-axis)
-        ax_histy.tick_params(axis='y', direction='in', which='both',
-                             labelleft=False, left=True)
-        ax_histy.tick_params(axis='x', direction = 'in', which='both',
-                             bottom=True, top=True, labelbottom=True, pad=5)
-        ax_histy.xaxis.set_label_position("bottom")
-        # colors for plotting
-        colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-        # if sort=True, concatenate list of positions into 1 array
-        if sort:
-            positions = [np.concatenate(tag_particles(positions), axis=1)]
-        else:
-            # if more galaxies than colors, generate new list of colors
-            if len(positions) > len(colors):
-                cmap = plt.get_cmap('turbo')
-                colors = [cmap(i) for i in np.linspace(0, 1, len(positions))]
-        ax1, ax2 = axes
-        # loop through each galaxy
-        for i in range(len(positions)):
-            if sort:
-                pos_, c, a, c_unique = sort_positions(positions[i], timestep,
-                                                      axes, colors)
-                # if colors are given in rgba values
-                #if c_unique.dtype.kind in 'iufc':
-                    #c_unique = np.asarray(c_unique).reshape(-1,4)
-                ax.scatter(pos_[:, ax1], pos_[:, ax2], s=0.4, color=c, alpha=a)
-                tags = pos_[:, 3].astype(int)
-                unique_tags = np.sort(np.unique(tags))
-                # loop through each tag and plot histogram
-                for j in range(c_unique.shape[0]):
-                    mask = np.where(pos_[:,3] == unique_tags[j])[0]
-                    ax_histx.hist(pos_[mask][:, ax1], bins='auto',
-                                  color=c_unique[j], histtype='step',
-                                  lw=0.8, density=True)
-                    ax_histy.hist(pos_[mask][:, ax2], bins='auto',
-                                  orientation='horizontal', color=c_unique[j],
-                                  histtype='step', lw=0.8, density=True)
-            else:
-                pos = positions[i][timestep]
-                # main scatter plot
-                ax.scatter(pos[:, ax1], pos[:, ax2], s=0.4, color=colors[i])
-                # top histogram (x-axis)
-                ax_histx.hist(pos[:, ax1], bins='auto', color=colors[i],
-                              histtype='step', lw=1, density=True)
-                # right histogram (y-axis)
-                ax_histy.hist(pos[:, ax2], bins='auto', orientation='horizontal',
-                              color=colors[i], histtype='step', lw=1, density=True)
-        # set axis limits
-        ax.set_xlim(-scale, scale)
-        ax.set_ylim(-scale, scale)
-        # set labels
-        ax.set_xlabel(labels[ax1], labelpad=10, size=16)
-        ax.set_ylabel(labels[ax2], labelpad=10, size=16)
-        # For dynamic axis labels with LaTeX
-        ax_histx.set_ylabel(rf'log[N$_{{{labels[ax1]}}}$]', labelpad=10, size=13)
-        ax_histy.set_xlabel(rf'log[N$_{{{labels[ax2]}}}$]', labelpad=10, size=13)
-        plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
-        # if savefig is True, save figure to directory
-        if savefig:
-            save_figure_2_disk(dpi)
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig = plt.figure(figsize=(6, 6))
+            # Adjust grid layout to prevent overlap
+            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2), height_ratios=(1.2, 4),
+                                  left=0.15, right=0.9, bottom=0.15, top=0.9,
+                                  wspace=0.09, hspace=0.09)  # Reduced spacing
+            # create subplots
+            ax = fig.add_subplot(gs[1, 0])  # Main scatter plot
+            ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)  # Top histogram
+            ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)  # Right histogram
+            # configure scales and ticks
+            ax_histx.set_yscale('log')
+            ax_histy.set_xscale('log')
+            ax.minorticks_on()
+            # tick parameters for main plot
+            ax.tick_params(axis='both', length=2, direction='in', which='both',
+                           pad=5, right=True, top=True)  # Added pad
+            # tick parameters for top histogram (x-axis)
+            ax_histx.tick_params(axis='x', direction='in', which='both',
+                                 labelbottom=False, bottom=True)
+            ax_histx.tick_params(axis='y', direction = 'in', which='both',
+                                 left=True, right=True, labelleft=True, pad=5)
+            ax_histx.yaxis.set_label_position("left")
+            # tick parameters for right histogram (y-axis)
+            ax_histy.tick_params(axis='y', direction='in', which='both',
+                                 labelleft=False, left=True)
+            ax_histy.tick_params(axis='x', direction = 'in', which='both',
+                                 bottom=True, top=True, labelbottom=True, pad=5)
+            ax_histy.xaxis.set_label_position("bottom")
+            # set plot colors
+            positions, colors = set_plot_colors(positions, sort,
+                                                dark_mode=dark_mode)
 
-        plt.show()
+            ax1, ax2 = axes
+            # loop through each galaxy
+            for i in range(len(positions)):
+                if sort:
+                    pos_, c, a, c_unique = sort_positions(positions[i], timestep,
+                                                          axes, colors)
+                    ax.scatter(pos_[:, ax1], pos_[:, ax2], s=0.4, color=c, alpha=a)
+                    tags = pos_[:, 3].astype(int)
+                    unique_tags = np.sort(np.unique(tags))
+                    # loop through each tag and plot histogram
+                    for j in range(c_unique.shape[0]):
+                        mask = np.where(pos_[:,3] == unique_tags[j])[0]
+                        ax_histx.hist(pos_[mask][:, ax1], bins='auto',
+                                      color=c_unique[j], histtype='step',
+                                      lw=0.8, density=True)
+                        ax_histy.hist(pos_[mask][:, ax2], bins='auto',
+                                      orientation='horizontal', color=c_unique[j],
+                                      histtype='step', lw=0.8, density=True)
+                else:
+                    pos = positions[i][timestep]
+                    # main scatter plot
+                    ax.scatter(pos[:, ax1], pos[:, ax2], s=0.4, color=colors[i])
+                    # top histogram (x-axis)
+                    ax_histx.hist(pos[:, ax1], bins='auto', color=colors[i],
+                                  histtype='step', lw=1, density=True)
+                    # right histogram (y-axis)
+                    ax_histy.hist(pos[:, ax2], bins='auto', orientation='horizontal',
+                                  color=colors[i], histtype='step', lw=1, density=True)
+            # set axis limits
+            ax.set_xlim(-scale, scale)
+            ax.set_ylim(-scale, scale)
+            # set labels
+            ax.set_xlabel(labels[ax1], labelpad=10, size=16)
+            ax.set_ylabel(labels[ax2], labelpad=10, size=16)
+            # For dynamic axis labels with LaTeX
+            ax_histx.set_ylabel(rf'log[N$_{{{labels[ax1]}}}$]', labelpad=10, size=13)
+            ax_histy.set_xlabel(rf'log[N$_{{{labels[ax2]}}}$]', labelpad=10, size=13)
+            plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
+
+            plt.show()
 
 def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
-                 snapshot_save_rate=10, savefig=False, dpi=300):
+                 snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 3x3 grid plot of 9 simulation timesteps
     Parameters
@@ -904,8 +1032,7 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
         dpi of saved figure
     '''
     # error handling
-    error_handling_axes(axes)
-    axes = [int(x) for x in axes]
+    axes = error_handling_axes(axes)
     if len(timesteps) != 9:
         error = ('timesteps should be a list of length 9 \n'
                 'ex: plot first 9 snapshots: [0,1,2,3,4,5,6,7,8]')
@@ -914,92 +1041,150 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
     labels = ['X', 'Y', 'Z']
     # plot grid
     # ---------
-    with plt.rc_context({
-        'axes.linewidth': 0.6,
-        'font.family': ['Courier New', 'DejaVu Sans Mono'],
-        'mathtext.default': 'regular'
-    }):
-        fig = plt.figure(figsize = (10,10))
-        # define 3x3 grid of subplots
-        gs = fig.add_gridspec(3, 3, hspace = 0, wspace = 0)
-        (axs) = gs.subplots(sharex=True, sharey=True)
-        # store params for each plot
-        labeltop = [[True,True,True], [False,False,False],
-                    [False,False,False]]
-        labelright = [[False,False,False], [False,False,True],
-                      [False,False,True]]
-        # generate each subplot
-        counter = 0
-        for i, a in enumerate(axs):
-            for j in range(3):
-                a[j].minorticks_on()
-                a[j].tick_params(axis='both', length=1.7, direction='in',
-                                 which='both', labeltop=labeltop[i][j],
-                                 labelright=labelright[i][j],
-                                 right=True, top=True)
-                counter += 1
-        # base colors
-        colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-        # if sort=True, concatenate list of positions into 1 array
-        if sort:
-            positions = [np.concatenate(tag_particles(positions), axis=1)]
-        # default settings
-        else:
-            # if more galaxies than colors, generate new list of colors
-            if len(positions) > len(colors):
-                cmap = plt.get_cmap('turbo')
-                colors = [cmap(i) for i in np.linspace(0, 1, len(positions))]
-        ax1, ax2 = axes
-        axs[0][1].set_xlim(-scale, scale)
-        axs[0][1].set_ylim(-scale, scale)
-        # # loop through each galaxy
-        for i in range(len(positions)):
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig = plt.figure(figsize = (10,10))
+            # define 3x3 grid of subplots
+            gs = fig.add_gridspec(3, 3, hspace = 0, wspace = 0)
+            (axs) = gs.subplots(sharex=True, sharey=True)
+            # store params for each plot
+            labeltop = [[True,True,True], [False,False,False],
+                        [False,False,False]]
+            labelright = [[False,False,True], [False,False,True],
+                          [False,False,True]]
+            # generate each subplot
             counter = 0
-            pos = positions[i]
-            # loop through each plot
-            for j in range(3):
-                # loop through each subplot
-                for k in range(3):
-                    timestep_label = timesteps[counter]*snapshot_save_rate
-                    timestep = timesteps[counter]
-                    # if True, sort particles by height
-                    if sort:
-                        pos_, c, a, _ = sort_positions(pos, timestep,
-                                                       axes, colors)
-                        axs[j][k].scatter(pos_[:,ax1], pos_[:,ax2],
-                                          s=0.1, color=c, alpha=a)
-                    # default grid plot
-                    else:
-                        pos_t = pos[timestep]
-                        axs[j][k].scatter(pos_t[:,ax1], pos_t[:,ax2],
-                                          s=0.1, color=colors[i])
-                    # timestep legend
-                    axs[j][k].text(-scale*0.9, scale*0.9, f't = {timestep_label}',
-                                   size=10, bbox=dict(boxstyle="round",
-                                                      ec=(1, 1, 1),fc=(1, 1, 1),))
+            for i, a in enumerate(axs):
+                for j in range(3):
+                    a[j].minorticks_on()
+                    a[j].tick_params(axis='both', length=1.7, direction='in',
+                                     which='both', labeltop=labeltop[i][j],
+                                     labelright=labelright[i][j],
+                                     right=True, top=True)
                     counter += 1
+            # set plot colors
+            positions, colors = set_plot_colors(positions, sort,
+                                                dark_mode=dark_mode)
+            ax1, ax2 = axes
+            axs[0][1].set_xlim(-scale, scale)
+            axs[0][1].set_ylim(-scale, scale)
+            # # loop through each galaxy
+            for i in range(len(positions)):
+                counter = 0
+                pos = positions[i]
+                # loop through each plot
+                for j in range(3):
+                    # loop through each subplot
+                    for k in range(3):
+                        timestep_label = timesteps[counter]*snapshot_save_rate
+                        timestep = timesteps[counter]
+                        # if True, sort particles by height
+                        if sort:
+                            pos_, c, a, _ = sort_positions(pos, timestep,
+                                                           axes, colors)
+                            axs[j][k].scatter(pos_[:,ax1], pos_[:,ax2],
+                                              s=0.1, color=c, alpha=a)
+                        # default grid plot
+                        else:
+                            pos_t = pos[timestep]
+                            axs[j][k].scatter(pos_t[:,ax1], pos_t[:,ax2],
+                                              s=0.1, color=colors[i])
+                        # timestep legend
+                        axs[j][k].text(-scale*0.9, scale*0.9, f't = {timestep_label}',
+                                       size=10, bbox=dict(boxstyle="round",
+                                                          ec=(1, 1, 1),fc=(1, 1, 1),))
+                        counter += 1
 
-        axs[2][1].set_xlabel(labels[ax1], size = 16)
-        axs[1][0].set_ylabel(labels[ax2], size = 16)
-        plt.tight_layout()
-        # if savefig is True, save figure to directory
-        if savefig:
-            save_figure_2_disk(dpi)
+            axs[2][1].set_xlabel(labels[ax1], size = 16)
+            axs[1][0].set_ylabel(labels[ax2], size = 16)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
 
-        plt.show()
+            plt.show()
+
+def set_plot_colors(positions, sort, cmap='rainbow_r',
+                    trim=False, dark_mode=False):
+    '''
+    Set plot colors based on plotting parameters
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    sort: boolean
+        determines whether or not to concatenate positions into
+        a single array for sorting
+    cmap: matplotlib.pyplot cmap
+        sets the cmap of the plot
+    trim: boolean
+        if True, returns a color array with len(positions)
+    Returns
+    -------
+    positions:
+        original positions array. if sort=True, the positions array
+        is concatenated along axis=1
+        ex: positions = [ ar1, ar2], sort=True
+        ar1.shape: TxNx3
+        ar2.shape: TxMx3
+        returned positions shape: Tx(N+M)x3
+    colors: array like
+        list of colors for the plot
+    '''
+    colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+    if dark_mode:
+        colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
+    # if sort, tag each particle in positions list
+    # then concatenate into single array
+    if sort:
+        positions = [np.concatenate(tag_particles(positions), axis=1)]
+    else:
+        # if more galaxies than colors, generate new list of colors
+        if len(positions) > len(colors):
+            colors = plt.get_cmap(cmap)(np.linspace(0, 1, len(positions)))
+    if trim:
+        colors = np.array(colors[:len(positions)])
+
+    return positions, colors
 
 def tag_particles(positions):
+    '''
+    Give each galaxy a unique tag
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    Returns
+    -------
+    pos: list of np.ndarray[np.float64]
+        list of TxNx4 arrays of positions, where the new 4th column
+        is a unique tag for each galaxy. Thus all particles in each galaxy N
+        have a tag of N-1
+    '''
     pos = []
     for i in range(len(positions)):
+        # number of timesteps
         timesteps = positions[i].shape[0]
+        # number of particles
         N = positions[i].shape[1]
+        # TxNx1 matrix of ones
         ones = np.ones((timesteps, N, 1))
+        # append matrix as a unique tag
         pos_sort = np.append(positions[i], ones*i, axis=2)
         pos.append(pos_sort)
 
     return pos
 
-def sort_positions(positions, timestep, axes, color_arr):
+def sort_positions(positions, timestep, axes, color_arr, cmap_dict=None):
 
     sorting_axis = 3 - sum(axes)
     pos = positions[timestep]
@@ -1021,7 +1206,7 @@ def sort_positions(positions, timestep, axes, color_arr):
     alphas = np.array([alpha_map[tag] for tag in tags])
     unique_colors = []
     if len(unique_tags) > len(color_arr):
-        cmap = plt.get_cmap('turbo', len(unique_tags))
+        cmap = plt.get_cmap('rainbow_r', len(unique_tags))
         colors = np.zeros((len(tags), 4))  # RGBA array
         # Create color array directly
         for i, tag in enumerate(unique_tags):
