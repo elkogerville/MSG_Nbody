@@ -4,7 +4,7 @@
 
 <p align="center">
   <img src="ANIMATIONS/ezgif-6475adeb9afc4b.gif" width="45%">
-  <img src="ANIMATIONS/ezgif-65d94a97da5a3c.gif" width="45%">
+  <img src="ANIMATIONS/xy_density_plot_sim2_dark.gif" width="45%">
 </p>
 
 
