@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-03-17
-Date Modified: 2025-04-11
+Date Modified: 2025-04-12
 Description:
     functions to handle simulation setup, such as loading initial conditions,
     rotating particle positions and velocities, and merging arrays
@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from .acceleration_potential import compute_accel_potential
 from .analysis import set_plot_colors
+from .input_output import save_figure_2_disk
 
 def load_initial_conditions(filename):
     '''
@@ -142,8 +143,9 @@ def compute_escape_velocity(x, y, z, M):
 
     return escape_vel
 
-def plot_orbital_trajectory(positions, velocities, masses, timesteps,
-                            dt, scale=100, plot_glxys=False, dark_mode=False):
+def plot_orbital_trajectory(positions, velocities, masses, dt,
+                            timesteps, scale=100, plot_glxys=False,
+                            savefig=False, dpi=300, dark_mode=False):
     '''
     Plot orbital trajectory of a galaxy merger by computing a point mass
     N-body simulation representing the galaxies involved in the merger
@@ -163,11 +165,17 @@ def plot_orbital_trajectory(positions, velocities, masses, timesteps,
     dt: float
         time step size for advancing the simulation. smaller values reduce
         integration errors but increase runtime
-    scale: float
+    scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    display_gal: boolean
+    display_gal: boolean, optional
         if True, will plot the galaxies in the plot
+    savefig: boolean, optional
+        saves the figure to the working directory if True
+    dpi: int, optional
+        dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     timesteps = int(timesteps)
     # determine initial conditions from COM
@@ -243,13 +251,15 @@ def plot_orbital_trajectory(positions, velocities, masses, timesteps,
                     ax[1].scatter(pos[:,0], pos[:,2], color=colors[i],
                                   s=3, alpha=0.05, zorder=0)
             plt.tight_layout()
+            if savefig:
+                save_figure_2_disk(dpi)
 
             plt.show()
 
 def concatenate_initial_conditions(pos_list, vel_list,
                                    mass_list, save_2_disk=False):
     '''
-    concatenates the intial conditions of an arbitrary amount of galaxies
+    Concatenates the intial conditions of an arbitrary amount of galaxies
     Parameters
     ----------
     pos_list: list of np.ndarray[np.float64]
@@ -258,6 +268,10 @@ def concatenate_initial_conditions(pos_list, vel_list,
         list containing each set of particle velocities
     mass_list: list of np.ndarray[np.float64]
         list containing each set of particle masses
+    save_2_disk: boolean, optional
+        if True, will save the concatenated initial conditions as a Nx7 .txt file
+        with the naming scheme init_conditions_N{N_particles}.txt' where
+        N_particles is the total number of particles
     Returns
     -------
     positions : np.ndarray[np.float64]
