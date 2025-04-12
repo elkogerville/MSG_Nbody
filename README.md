@@ -154,7 +154,7 @@ vel_list = [glxy1_vel, glxy2_vel, glxy3_vel]
 mass_list = [glxy1_mass, glxy2_mass, glxy3_mass]
 positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list, save_2_disk=True)
 ```
-The [plot_orbital_trajectory]() function allows the user to visualize the orbital trajectory of the galaxies before running the simulation. A simple N-Body simulation is ran using point masses to represent the galaxy in order to gain an approximate idea of what the simulation will look like.
+The [plot_orbital_trajectory](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L146) function allows the user to visualize the orbital trajectory of the galaxies before running the simulation. A simple N-Body simulation is ran using point masses to represent the galaxy in order to gain an approximate idea of what the simulation will look like.
 ```python
 dt = 0.1
 timesteps = 5000
