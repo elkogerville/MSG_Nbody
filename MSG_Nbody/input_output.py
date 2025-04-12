@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-03-17
-Date Modified: 2025-04-01
+Date Modified: 2025-04-12
 Description:
     functions to manage the I/O operations of the simulation. creates a unique
     directory to save snapshots and manages the snapshot file naming
@@ -149,6 +149,13 @@ def create_output_directory(N):
     return directory_name
 
 def save_figure_2_disk(dpi):
+    '''
+    Saves current figure to disk, and prompts user for a filename and format
+    Parameters
+    ----------
+    dpi: float
+        resolution in dots per inch
+    '''
     file_name = input('input filename for image (ex: myimage.pdf): ')
     format = input('please enter format: png or pdf')
     while format not in {'png', 'pdf'}:
@@ -156,6 +163,19 @@ def save_figure_2_disk(dpi):
     plt.savefig(file_name, dpi=dpi, format=format)
 
 def error_handling_axes(axes):
+    '''
+    Ensures axes parameter is correctly entered in plotting functions
+    Parameters
+    ----------
+    axes: list of int
+        list of len(2) specifying which projection to plot where
+        0→X, 1→Y, and 2→Z
+        example: axes=[0,1] specifies the xy projection
+    Returns
+    -------
+    axes: list of int
+        list of len(2) where elements are in range [0,2] and are integers
+    '''
     if len(axes) != 2:
         error = ('projection axes must be a list of length 2 \n'
                 'ex: [0,1] would specify x,y projection')
