@@ -1230,40 +1230,82 @@ def tag_particles(positions):
 
     return pos
 
-def sort_positions(positions, timestep, axes, color_arr, cmap_dict=None):
-
+def sort_positions(positions, timestep, axes, color_arr):
+    '''
+    Sort positions along axis omitted in projection and create an array
+    of colors with a color corresponding to each particle. For example,
+    if plotting xy projection, will sort by z height to ensure that the
+    particles are plotted such that higher particles are on top of lower
+    ones. an array of colors with 1 color per particle is generated,
+    respecting the color of each galaxy
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of len(1) containing a TxNx4 array of x,y,z positions, where the 
+        4th column contains a unique tag for each galaxy. Thus all particles 
+        in each galaxy N have a tag of N-1
+    timestep:
+        timestep to plot
+    axes: list of int
+        list or array of length 2 specifying which two axes
+        (0 for x, 1 for y, 2 for z) should be used for the projection.
+        ex: axes = [0,1] would specify the xy projection
+    color_arr: list of str
+        list of MSG_Nbody base matplotlib colors
+    Returns
+    -------
+    pos_sorted: np.ndarray[np.float64]
+        Nx4 x,y,z,tag positions array sorted by height
+    colors: list or array like
+        list of colors or RBGA array of colors to use in plot
+    alphas: np.ndarray[float]
+        array of alpha values for each particle
+    unique_colors: np.ndarray[str or float]
+        array of each unique color
+    '''
+    # compute sorting axis (axis not used)
     sorting_axis = 3 - sum(axes)
+    # get particles at timestep
     pos = positions[timestep]
-
+    # sort by sorting axis
     sorted_indeces = np.argsort(pos[:, sorting_axis])
     pos_sorted = pos[sorted_indeces]
-
+    # array of all tags sorted by height
     tags = pos_sorted[:, 3].astype(int)
+    # get unique tags (1 unique tag per galaxy)
     unique_tags = np.sort(np.unique(tags))
-
+    # generate increasing alphas per galaxy
     min_alpha, max_alpha = 0.6, 0.8
     alpha_step = (max_alpha - min_alpha) / max(1, len(unique_tags)-1)
-
-    # Create alpha mapping - each galaxy gets slightly higher alpha
+    # create alpha mapping where each galaxy gets slightly higher alpha
     alpha_map = {tag: min_alpha + i*alpha_step
                 for i, tag in enumerate(unique_tags)}
-
-    # Apply to all particles
+    # apply alphas to all particles
     alphas = np.array([alpha_map[tag] for tag in tags])
+    # array to store unique colors
     unique_colors = []
+    # if more galaxies than base colors
+    # ---------------------------------
     if len(unique_tags) > len(color_arr):
+        # generate 1 color per galaxy from cmap
         cmap = plt.get_cmap('rainbow_r', len(unique_tags))
-        colors = np.zeros((len(tags), 4))  # RGBA array
-        # Create color array directly
+        # generate RGBA color array
+        colors = np.zeros((len(tags), 4))
+        # for each unique tag assign color to all galaxy particles
         for i, tag in enumerate(unique_tags):
             mask = tags == tag
             colors[mask] = cmap(i)
             unique_colors.append(cmap(i))
+        # reshape unique colors
         unique_colors = np.asarray(unique_colors).reshape(-1,4)
+    # if less galaxies than base colors
+    # ---------------------------------
     else:
+        # color dictionary mapping tags to a color
         color_map = {tag: color_arr[i] for i, tag in enumerate(unique_tags)}
-        # vectorized color assignment
+        # for each particle assign color mapped to its galaxy
         colors = np.array([color_map[tag] for tag in tags])
+        # get unique colors
         for i in color_map:
             unique_colors.append(color_map[i])
         unique_colors = np.asarray(unique_colors)
