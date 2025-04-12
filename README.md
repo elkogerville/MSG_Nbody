@@ -42,7 +42,7 @@ gal2_vel += [-0.2, -0.12, 0]
 pos_list = [gal1_pos, gal2_pos]
 vel_list = [gal1_vel, gal2_vel]
 mass_list = [gal1_mas, gal2_mas]
-positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list,
+positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list)
 
 # run N-body simulation
 dt = 0.01
