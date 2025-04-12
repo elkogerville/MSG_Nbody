@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2023-05-20
-Date Modified: 2025-03-19
+Date Modified: 2025-04-12
 Description:
     function for the computation of the gravitational acceleration and potential
     experienced by a group of particles
@@ -50,9 +50,6 @@ def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     x = np.ascontiguousarray(pos[:, 0]).reshape(N, 1)
     y = np.ascontiguousarray(pos[:, 1]).reshape(N, 1)
     z = np.ascontiguousarray(pos[:, 2]).reshape(N, 1)
-    # x = pos[:, 0:1]
-    # y = pos[:, 1:2]
-    # z = pos[:, 2:3]
     # calculate particle-particle seperations
     delx = x.T - x
     dely = y.T - y
@@ -65,13 +62,10 @@ def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     accel[:, 2:3] = G * np.dot((delz * inv_r3), mass)
 
     # calculate (N x N) particle-particle potential matrix
-    # potential_N = (G * mass.T) / r
     potential_N = (G * mass.reshape(1, N)) / r
     # set diagonal elements to zero
     # these represent the potential of a particle onto itself which is unphysical
     np.fill_diagonal(potential_N, 0.0)
     potential[:] = np.sum(potential_N, axis=0).reshape(N, 1)
-    #potential = np.sum(potential_N, axis = 0).reshape(N, 1)
 
     return accel, potential
-
