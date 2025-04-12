@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2023-05-20
-Date Modified: 2025-03-19
+Date Modified: 2025-04-12
 Description:
     function to simulate a group of particles under the influence of gravity
     given initial positions, velocities, and masses
