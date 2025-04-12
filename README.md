@@ -27,7 +27,7 @@ For a guide on how to setup a simulation from start to finish, see the [MSG_Nbod
 The MSG_Nbody Python package offers an efficient, fully vectorized 3-dimensional NumPy implementation leveraging Numba of the particle-particle N-body simulation algorithm by integrating the motion of stellar particles under their combined gravitational attraction. [Initial conditions](Initial_Conditions) of different galaxy models in equilibrium are provided, including a Hernquist spherical galaxy and a simple disk galaxy. The algorithm for generating spherical galaxy initial conditions of different masses and scale lengths is also provided for further customizations. Yet, any set of initial conditions can be used as inputs to the simulation code, which will integrate their motions and save snapshot files directly to a directory. On a reasonably powerful personal computer, the code can support up to ~20,000 - 30,000 particles with runtimes on the order of a couple of days, using the numba compiler. Lowering the number of particles (N<15,000) will yield computation times of a couple minutes to a couple of hours. Therefore, this package aims to provide an accessible N-body simulation code in Python that is simple to set up and modify yet still simulates the effects of gravity with reasonable accuracy. The package also comes with a fully integrated Python toolkit to analyze simulation snapshots.
 
 ## Documentation and How to Use
-For an in-depth overview of how to use MSG_Nbody, please see the [MSG_Nbody Documentation Notebook](Tests/MSG_Nbody_Documentation.ipynb), which demonstrates how to set up and run an N-body simulation between two colliding disk galaxies with 6,000 total particles. In the [Tests](Tests) folder, there are numerous programs for the user to try, including initial condition generation scripts, N-body merger simulation programs, and simulation animation scripts. The 'Generate_Spherical_Galaxy_Conditions' notebook demonstrates how to use the spherical_galaxy method to generate initial conditions for a spherically symmetric galaxy. The N-body simulation code is flexible, however, and can take any set of initial conditions in the form of NumPy arrays as inputs. The code below demonstrates how easy a simple 1:1 merger between two Hernquist spherical galaxies is to run.
+For an in-depth overview of how to use MSG_Nbody, please see the [MSG_Nbody Documentation Notebook](Tests/MSG_Nbody_Documentation.ipynb), which demonstrates how to set up and run an N-body simulation between two colliding disk galaxies with 6,000 total particles. In the [Tests](Tests) folder, there are numerous programs for the user to try, including initial condition generation scripts, N-body merger simulation programs, and simulation animation scripts. The N-body simulation code is flexible, however, and can take any set of initial conditions in the form of NumPy arrays as inputs. The code below demonstrates how easy a simple 1:1 merger between two Hernquist spherical galaxies is to run.
 ```python
 from MSG_Nbody import *
 # load initial conditions
@@ -114,14 +114,14 @@ from MSG_Nbody import *
 <a id="simulation-setup-1"></a>
 ## Simulation Setup
 
-Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) method. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
+Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) function. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
 
 ```python
 path_2_file = 'Initial_Conditions/model_disk_3000.txt'
 glxy_pos, glxy_vel, glxy_mass = load_initial_conditions(path_2_file)
 ```
 
-It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, to scale our galaxy's mass and radius, use the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) method.
+It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, to scale our galaxy's mass and radius, use the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) function.
 
 ```python
 # scale galaxy mass and radius by a factor of 10
@@ -130,14 +130,14 @@ new_mass = 10
 glxy_pos, glxy_vel, glxy_mass = scale_initial_positions(glxy_pos, glxy_vel, glxy_mass, new_radius, new_mass)
 ```
 
-We can also rotate the disk about a specified axis using a rotation matrix, which will rotate the disk around the $x, y,$ or $z$ axis with the [rotate_disk](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L68) method.
+We can also rotate the disk about a specified axis using a rotation matrix, which will rotate the disk around the $x, y,$ or $z$ axis with the [rotate_disk](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L68) function.
 
 ```python
 # 45º rotation around y axis
 glxy_pos, glxy_vel = rotate_disk(glxy_pos, glxy_vel, 45, 'y')
 ```
 
-We can compute the escape velocity at a point r=[x,y,z] from the center of mass of the galaxy using the [compute_escape_velocity](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L112) method.
+We can compute the escape velocity at a point r=[x,y,z] from the center of mass of the galaxy using the [compute_escape_velocity](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L112) function.
 
 ```python
 # escape velocity at point P a distance |P| from a galaxy centered at [0,0,0]
@@ -145,7 +145,7 @@ P = [40,40,50]
 escape_velocity = compute_escape_velocity(P0[0], P0[1], P0[2], np.sum(glxy_mass))
 ```
 
-The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L139) method allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
+The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L139) function allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
 ```python
 # concatenate 3 sets of galaxy initial conditions, and save the resulting Nx7 initial conditions array to a .txt file
 # where N is the sum of the number of particles in each galaxy
@@ -158,19 +158,19 @@ positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_lis
 <a id="running-the-simulation-1"></a>
 ## Running the Simulation
 
-To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) method. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
+To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) function. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
 ```python
 dt = 0.1
 timesteps = 2000
 MSG_nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
 ```
 
-The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L16) method.
+The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L16) function.
 
 <a id="simulation-analysis-1"></a>
 ## Simulation Analysis
 
-To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) method. This will separate each timestep into an arbitrary number of subarrays. Each returned object is a list of len(N_particles) containing the separated position, velocity, and potential array of each galaxy. The arrays each have shapes TxNx3 for positions and velocities, and TxNx1 for masses, where T is the number of timesteps.
+To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) function. This will separate each timestep into an arbitrary number of subarrays. Each returned object is a list of len(N_particles) containing the separated position, velocity, and potential array of each galaxy. The arrays each have shapes TxNx3 for positions and velocities, and TxNx1 for masses, where T is the number of timesteps.
 ```python
 path_2_snapshots = 'simulation_outputs_N6000/*'
 # number of particles per galaxy
@@ -178,7 +178,7 @@ N_particles = [3000, 3000]
 positions, velocities, potentials = load_simulation_outputs(path_2_snapshots, N_particles)
 ```
 
-To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L23) method.
+To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L23) function.
 ```python
 # shift all particles to simulation center of mass frame
 positions, velocities = shift_2_com_frame(positions, velocities, masses)
@@ -187,32 +187,32 @@ positions, velocities = shift_2_com_frame(positions, velocities, masses)
 positions, velocities = shift_2_com_frame(positions, velocities, gxy1_mass, galaxy_idx=0)
 ```
 
-To display a simulation snapshot at a timestep $t$, use the [display_galaxies](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L83) method. Keep in mind that if every 10 timesteps are saved, the total number of snapshots available to plot is the number of timesteps divided by snapshot_save_rate.
+To display a simulation snapshot at a timestep $t$, use the [display_galaxies](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L83) function. Keep in mind that if every 10 timesteps are saved, the total number of snapshots available to plot is the number of timesteps divided by snapshot_save_rate.
 ```python
 timestep = 300
 display_galaxies(positions, timestep, sort=True, scale=30)
 ```
 
-Alternatively, a 3x3 grid plot showing 9 timesteps can be plotted with the [plot_3x3grid](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L867) method.
+Alternatively, a 3x3 grid plot showing 9 timesteps can be plotted with the [plot_3x3grid](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L867) function.
 ```python
 # plot x,y projection
 t = [50, 230, 260, 300, 400, 500, 700, 800, 900]
 plot_grid3x3(positions, t, [0,1], sort=True, snapshot_save_rate=10, savefig=True)
 ```
 
-We can compute the relative Energy per timestep using the [compute_relative_energy](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L162) method. This returns a list of containing a TxNx1 energy array for each galaxy.
+We can compute the relative Energy per timestep using the [compute_relative_energy](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L162) function. This returns a list of containing a TxNx1 energy array for each galaxy.
 ```python
 energies = compute_relative_energy(velocities, potentials)
 ```
 
-To plot the log distribution of energies for a given galaxy use the [plot_Ne](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L361) method. A list of timesteps to plot can be passed in.
+To plot the log distribution of energies for a given galaxy use the [plot_Ne](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L361) function. A list of timesteps to plot can be passed in.
 ```python
 # plot the log energy distribution of galaxy 1 at timesteps 0, 2600, and 9000
 t = [0, 260, 900]
 plot_Ne(energies[0], t, snapshot_save_rate=10, savefig=True)
 ```
 
-To plot a simulated position-velocity diagram (PVD) of an orthagonal projection of a simulation snapshot along a specified line of sight, use the [plot_PVD](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L463) method.
+To plot a simulated position-velocity diagram (PVD) of an orthagonal projection of a simulation snapshot along a specified line of sight, use the [plot_PVD](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L463) function.
 ```python
 # PVD of galaxy 2 at timestep 2000 along the z line of sight
 timestep = 200
@@ -221,7 +221,7 @@ slice_width = 0.4
 plot_PVD(positions[1], velocities[1], timestep, line_of_sight, slice_wifth, snapshot_save_rate=10)
 ```
 
-To plot a simulation timestep with density histogram subplots, use the [plot_density_histogram](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L867) method.
+To plot a simulation timestep with density histogram subplots, use the [plot_density_histogram](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L867) function.
 ```python
 # xz projection of timestep 0
 plot_density_histogram(positions, 0, [0,2], sort=True, scale=55)
