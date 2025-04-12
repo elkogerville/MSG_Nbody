@@ -1,7 +1,7 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2025-03-17
-Date Modified: 2025-04-11
+Date Modified: 2025-04-12
 Description:
     functions to analyze simulation outputs such as plotting snapshots or
     energy distributions
@@ -17,6 +17,7 @@ from scipy.integrate import quad
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.ticker as ticker
 from tqdm import tqdm
 from .input_output import save_figure_2_disk, error_handling_axes
 
@@ -41,7 +42,7 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
         Mx1 array of particle masses where M is the total number of particles
         in the simulation. if galaxy_idx != None, mass should be a Nx1 array
         corresponding to the masses of a subgroup of particles
-    galaxy_idx: int
+    galaxy_idx: int, optional
         set to None by default. in default mode, the function will shift to
         the frame of reference of the center of mass of the entire simulation.
         can also be used to specify a subgroup of particles to compute the
@@ -68,7 +69,7 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
         pos_stack = positions[galaxy_idx]
         vel_stack = velocities[galaxy_idx]
     # loop through each timestep
-    for i in tqdm(range(positions[0].shape[0])):
+    for i in tqdm(range(positions[0].shape[0]), desc='shifting frame of reference'):
         pos = pos_stack[i]
         vel = vel_stack[i]
         com_pos = np.sum(pos*mass, axis=0)/total_mass
@@ -80,7 +81,7 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
 
     return positions, velocities
 
-def plot_2D(pos, t, axes, scale=50, cmap=False, sort=False,
+def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
             snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 2D projection of a simulation snapshot
@@ -99,29 +100,39 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, sort=False,
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
-    scale: float
+    scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    cmap: list of np.ndarray[np.float64]
-        is False by default. if provided with a list of same length as pos,
-        containing either 'False' or a (N,) shaped array of values, will set
-        the color of each galaxy with a cmap based on the values provided.
-        ex: use a cmap on the first galaxy but not the second
-        the cmap is mapped to the vx component of the first galaxy at t = 0
-        cmap = [velocities[0][t][:,0], False]
-    snapshot_save_rate: int
+    cmap: dict, optional
+        dictionary mapping an integer key (galaxy index number in pos)
+        to an array of of shape N, where N is the number of particles in pos.
+        used to apply a colormapping to that galaxy
+        example: map the x velocities of the first galxaxy in pos at timestep t=0
+        t = 0
+        galaxy_idx = 0
+        dim = 0
+        cmap = {galaxy_idx: velocities[galaxy_idx][t,:,dim]}
+    cb_idx: int, optional
+        the index of which cmap to use for the colorbar. by default is set to 0
+        and corresponds to the lowest galaxy_idx in dict (see above). incrementing
+        cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
+    snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
         to actual simulation timestep. by default is set to 10.
         this should match the value of the simulation snapshot_save_rate
-    savefig: boolean
+    savefig: boolean, optional
         saves the figure to the working directory if True
-    dpi: int
+    dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     axes = error_handling_axes(axes)
     t = int(t)
     style = 'dark_background' if dark_mode else 'default'
+    ec = (0, 0, 0) if dark_mode else (1, 1, 1)
+    fc = (0, 0, 0) if dark_mode else (1, 1, 1)
     with plt.style.context(style):
         with plt.rc_context({
             'axes.linewidth': 0.6,
@@ -135,24 +146,30 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, sort=False,
                            which='both', right=True, top=True)
             plt.rcParams['axes.linewidth'] = 0.6
             plt.rcParams['font.family'] = 'Courier New'
-
+            # set plot colors
             pos, colors = set_plot_colors(pos, sort, dark_mode=dark_mode)
+            cmaps = ['RdPu_r', 'Greens', 'cool', 'cividis',
+                     'magma', 'inferno', 'hot', 'summer']
             ax1, ax2 = axes
             ax_labels = ['X', 'Y', 'Z']
             if cmap == False:
-                cmap = [False for x in pos]
+                cmap = {}
+            counter = 0
             for i, galaxy in enumerate(pos):
-                if np.all(cmap[i]) != False:
-                    im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
-                                    s=0.5, c=cmap[i], cmap='RdPu_r')
-                    cbar = fig.colorbar(im, ax=ax)
-                    cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                colors_i = cmap.get(i, None)
+                if colors_i is not None:
+                    im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=0.5,
+                                    c=cmap[i], cmap=cmaps[counter%len(cmaps)])
+                    if counter == cb_idx:
+                        cbar = fig.colorbar(im, ax=ax)
+                        cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                    counter += 1
                 else:
                     ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
                                s=0.5, color=colors[i])
 
             plt.text(scale/1.8, scale/1.2, 't = {}'.format(t*snapshot_save_rate),
-                     bbox=dict(boxstyle="round", ec=(1, 1, 1),fc=(1., 1, 1),))
+                     bbox=dict(boxstyle="round", ec=ec,fc=fc,))
 
             ax.set_xlim(-scale, scale)
             ax.set_ylim(-scale, scale)
@@ -182,19 +199,21 @@ def display_galaxies(positions, timestep, sort=False, scale=100,
         with snapshot_save_rate = 10 will only have 200 timesteps to plot.
         if False, will allow user to plot initial simulation distribution
         when no timesteps have been calculated
-    sort: boolean
+    sort: boolean, optional
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
         for example: axes = [0,1] and sort=True will sort all particles by their
         z height (dimension 2) and plot particles with the smallest z height
         first, ensuring particles that are 'higher' are shown on top
-    scale: float
+    scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    savefig: boolean
+    savefig: boolean, optional
         saves the figure to the working directory if True
-    dpi: int
+    dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     # if only 1 timestep provided (avoids program from breaking)
     if timestep == None:
@@ -234,7 +253,7 @@ def display_galaxies(positions, timestep, sort=False, scale=100,
                                                                      proj_axes,
                                                                      colors)
                         ax[i].scatter(sorted_pos[:,0], sorted_pos[:,i+1],
-                                      s=0.1, color=c_arr, alpha=a_arr)
+                                      s=0.4, color=c_arr, alpha=a_arr)
                 else:
                     # plot x,y projection
                     ax[0].scatter(galaxy[timestep,:,0], galaxy[timestep,:,1],
@@ -440,7 +459,7 @@ def compute_hernquist_Ne(M, a, N_stars):
     # initialize storing array
     G_E = np.empty((N))
     # loop through each radius
-    for e in tqdm(range(N), desc = 'calculating g(E)'):
+    for e in tqdm(range(N), desc='calculating g(E)'):
         # calculate g[E] for current energy level e
         g_E = g(center_bins[e], M, a)
         # store g[E]
@@ -451,9 +470,9 @@ def compute_hernquist_Ne(M, a, N_stars):
 
     return NE, center_bins
 
-def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
-            bin_max=0.35, plot_hernquist=False, grayscale=False,
-            snapshot_save_rate=10, dpi=300, dark_mode=False):
+def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
+            plot_hernquist=False, grayscale=False, snapshot_save_rate=10,
+            savefig=False, dpi=300, dark_mode=False):
     '''
     Plot the energy distribution of particles across different timesteps
     on a log-log plot
@@ -467,13 +486,10 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
         every 'snapshot_save_rate', the total number of recorded timesteps is
         timesteps/snapshot_save_rate. thus, a simulation ran for 2000 timesteps
         with snapshot_save_rate = 10 will only have 200 timesteps to plot
-    timesteps : list of int
-        list of timesteps to plot
-    savefig : bool, optional
-        if True, prompts user for a filename and saves the figure
     bin_min, bin_max : float, optional
         the minimum and maximum values for the logarithmic binning
-    plot_hernquist: boolean
+        defined as min=10**(bin_min) and max=10**(bin_max)
+    plot_hernquist: boolean, optional
         if True, will plot the analytical N(E) curve of a hernquist galaxy,
         using the 'compute_hernquist_Ne' method. will promt the user to input:
         M: float
@@ -482,15 +498,19 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
             scale length of hernquist galaxy
         N: int
             number of particles in hernquist galaxy
-    grayscale:
-        sets plot color to black
-    snapshot_save_rate: int
+    grayscale: boolean, optional
+        if True, sets plot color to black
+    snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
         to actual simulation timestep. by default is set to 10.
         this should match the value of the simulation snapshot_save_rate
-    dpi: int
+    savefig : bool, optional
+        if True, prompts user for a filename and saves the figure
+    dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     # ensure timesteps is in list format
     if isinstance(timesteps, int):
@@ -506,6 +526,8 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
             # Define colors
             if grayscale:
                 colors = ['k' for k in range(6)]
+            if dark_mode:
+                colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
             else:
                 colors = ['k', '#483D8B', '#DC267F', '#42A27D', '#6A5ACD', '#91B515']
             use_colorbar = len(timesteps) > len(colors)
@@ -517,7 +539,7 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
                             which='both', right=True, top=True)
             ls = ['-', '--', '-.', ':']
             if use_colorbar:
-                cmap = cm.turbo
+                cmap = cm.rainbow if not grayscale else cm.gray
                 norm = mcolors.Normalize(vmin=min(timesteps) * snapshot_save_rate,
                                          vmax=max(timesteps) * snapshot_save_rate)
                 # normalize timesteps
@@ -559,7 +581,7 @@ def plot_Ne(energy, timesteps, savefig=False, bin_min=-3,
 
             plt.show()
 
-def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
+def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
              b_shift=0, transpose=False, snapshot_save_rate=10,
              savefig=False, dpi=300, dark_mode=False):
     '''
@@ -584,7 +606,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
         list or array of length 3 representing the line-of-sight direction as a
         vector in 3D space. this is used to project the velocities along the
         line of sight. the vector will automatically be normalized
-    height: float
+    width: float
         half-thickness of the extraction window around the best-fit line.
         defines the ± limits for particle selection
     m_shift: float, optional
@@ -592,17 +614,17 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
     b_shift: float, optional
         shifts the best-fit line intercept value by adding b_shift to b.
         by default is set to 0
-    transpose: boolean
+    transpose: boolean, optional
         if True, chooses the 'y' component of the position projection as the
         major axis to plot against the line of sight velocity
-    snapshot_save_rate: int
+    snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
         to actual simulation timestep. by default is set to 10.
         this should match the value of the simulation snapshot_save_rate
-    savefig: boolean
+    savefig: boolean, optional
         saves the figure to the working directory if True
-    dpi: int
+    dpi: int, optional
         dpi of saved figure
     '''
     def los_to_angles(los_vector):
@@ -636,9 +658,9 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
         ----------
         positions: np.ndarray[np.float64]
             Nx3 array containing the [x, y, z] positions of all particles.
-        elev: float
+        elev: float, optional
             Elevation angle in degrees (rotation around x-axis).
-        azim: float
+        azim: float, optional
             Azimuthal angle in degrees (rotation around z-axis).
 
         Returns
@@ -718,7 +740,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
             NxN grid of y values
         Z: np.ndarray[np.float64]
             NxN array of density contours
-        density_threshold:
+        density_threshold: float, optional
             fraction of maximum density to consider
             (e.g., 0.001 = 0.1% of peak density)
         Returns
@@ -747,7 +769,20 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
 
     def make_square_limits(xmin, xmax, ymin, ymax):
         '''
-        Expands the smaller range to match the larger one, ensuring equal aspect ratio.
+        Expands the smaller range to match the larger one,
+        ensuring equal aspect ratio
+        Parameters
+        ----------
+        xmin, xmax: float
+            minimum and maximum x values in plot
+        ymin, ymax: float
+            minimum and maximum y values in plot
+        Returns
+        -------
+        xmin_new, xmax_new: float
+            shifted minimum and maximum x values in plot
+        ymin_new, ymax_new: float
+            shifted minimum and maximum y values in plot
         '''
         x_range = xmax - xmin
         y_range = ymax - ymin
@@ -777,13 +812,13 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
     # compute best fit linear model on position
     linear_fit = np.polyfit(pos_proj[:,0], pos_proj[:,1], 1)
     line_best_fit = np.poly1d(linear_fit)
-    # obtain model parameters and shift by ± height
+    # obtain model parameters and shift by ± width
     # this creates 2 parallel lines to mask positions
     # we want the particles that lie in between the line
     m = line_best_fit[1] * m_shift
     b = line_best_fit[0] + b_shift
-    # scales height proportionally to slope
-    offset = height * np.sqrt(1 + m**2)
+    # scales width proportionally to slope
+    offset = width * np.sqrt(1 + m**2)
     b1, b2 = b + offset, b - offset
     # mask particles
     los_mask = ((pos_proj[:,1] < pos_proj[:,0]*m + b1) &
@@ -845,7 +880,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, height, m_shift=1,
             # compute contours with gaussian kde kernel
             X, Y, Z = compute_density(pos_los[:,axis], v_los)
             cs = ax[1].contour(X, Y, Z, levels=np.logspace(-3,10,24),
-                               cmap='gray', alpha=.5)
+                               colors='k', alpha=0.6)
             # get limits from contour paths
             if len(cs.allsegs) > 0:
                 all_verts = np.vstack([np.vstack(level_segs) for
@@ -892,19 +927,21 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
-    sort: boolean
+    sort: boolean, optional
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
         for example: axes = [0,1] and sort=True will sort all particles by their
         z height (dimension 2) and plot particles with the smallest z height
         first, ensuring particles that are 'higher' are shown on top
-    scale: float
+    scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    savefig: boolean
+    savefig: boolean, optional
         saves the figure to the working directory if True
-    dpi: int
+    dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     axes = error_handling_axes(axes)
     timestep = int(timestep)
@@ -1012,24 +1049,26 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
-    sort: boolean
+    sort: boolean, optional
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
         for example: axes = [0,1] and sort=True will sort all particles by their
         z height (dimension 2) and plot particles with the smallest z height
         first, ensuring particles that are 'higher' are shown on top
-    scale: float
+    scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    snapshot_save_rate: int
+    snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
         to actual simulation timestep. by default is set to 10.
         this should match the value of the simulation snapshot_save_rate
-    savefig: boolean
+    savefig: boolean, optional
         saves the figure to the working directory if True
-    dpi: int
+    dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     # error handling
     axes = error_handling_axes(axes)
@@ -1042,6 +1081,8 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
     # plot grid
     # ---------
     style = 'dark_background' if dark_mode else 'default'
+    ec = (0, 0, 0) if dark_mode else (1, 1, 1)
+    fc = (0, 0, 0) if dark_mode else (1, 1, 1)
     with plt.style.context(style):
         with plt.rc_context({
             'axes.linewidth': 0.6,
@@ -1066,6 +1107,8 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
                                      which='both', labeltop=labeltop[i][j],
                                      labelright=labelright[i][j],
                                      right=True, top=True)
+                    a[j].xaxis.set_major_locator(ticker.MaxNLocator(3))
+                    a[j].yaxis.set_major_locator(ticker.MaxNLocator(3))
                     counter += 1
             # set plot colors
             positions, colors = set_plot_colors(positions, sort,
@@ -1097,7 +1140,7 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
                         # timestep legend
                         axs[j][k].text(-scale*0.9, scale*0.9, f't = {timestep_label}',
                                        size=10, bbox=dict(boxstyle="round",
-                                                          ec=(1, 1, 1),fc=(1, 1, 1),))
+                                                          ec=ec,fc=fc,))
                         counter += 1
 
             axs[2][1].set_xlabel(labels[ax1], size = 16)
@@ -1122,10 +1165,13 @@ def set_plot_colors(positions, sort, cmap='rainbow_r',
     sort: boolean
         determines whether or not to concatenate positions into
         a single array for sorting
-    cmap: matplotlib.pyplot cmap
+    cmap: matplotlib.pyplot cmap, optional
         sets the cmap of the plot
-    trim: boolean
+    trim: boolean, optional
         if True, returns a color array with len(positions)
+    dark_mode: boolean, optional
+        if True, uses a color palette tuned to the matplotlib
+        dark_background style
     Returns
     -------
     positions:
@@ -1195,7 +1241,7 @@ def sort_positions(positions, timestep, axes, color_arr, cmap_dict=None):
     tags = pos_sorted[:, 3].astype(int)
     unique_tags = np.sort(np.unique(tags))
 
-    min_alpha, max_alpha = 0.4, 0.6
+    min_alpha, max_alpha = 0.6, 0.8
     alpha_step = (max_alpha - min_alpha) / max(1, len(unique_tags)-1)
 
     # Create alpha mapping - each galaxy gets slightly higher alpha
