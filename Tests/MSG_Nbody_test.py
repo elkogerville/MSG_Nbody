@@ -11,8 +11,8 @@ with 16,000 total particles
 
 ** NOTE **
 Please download the initial conditions from the Initial_Conditions folder
-in the github repo. Please place this file in the same directory containing
-the Initial_Conditions directory.
+in the github repo. Please place these files in the same directory containing
+MSG_Nbody.py
 '''
 
 from MSG_Nbody import *
@@ -66,6 +66,7 @@ dt = 0.1
 timesteps = 5000
 plot_orbital_trajectory(pos_list, vel_list, mass_list, dt,
                         timesteps, scale=80, plot_glxys=True)
+plt.close()
 
 # run N-body simulation
 MSG_nbody(positions, velocities, masses, 0.1, 2000, snapshot_save_rate=10)
