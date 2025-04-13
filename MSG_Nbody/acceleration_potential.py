@@ -5,6 +5,9 @@ Date Modified: 2025-04-12
 Description:
     function for the computation of the gravitational acceleration and potential
     experienced by a group of particles
+                       rⱼ-rᵢ
+     gᵢ = G ∑ⱼ mⱼ –––––––––––––––– 
+                   [|rⱼ-rᵢ|² + ϵ²]
 Dependencies:
     - numpy
     - numba
