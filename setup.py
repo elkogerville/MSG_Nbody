@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='MSG_Nbody',
-    version='0.1.1',
+    version='0.2.1',
     description='Nbody simulation code for galaxy interactions',
     url='https://github.com/elkogerville/MSG_Nbody',
     author='Elko Gerville-Reache',
@@ -17,6 +17,7 @@ setup(
         'numba',
         'tqdm',
         'matplotlib',
+        'scipy',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
