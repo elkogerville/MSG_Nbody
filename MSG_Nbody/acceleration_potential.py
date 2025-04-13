@@ -13,7 +13,7 @@ import numpy as np
 from numba import njit
 
 # compute acceleration in parallel, with no_nan and no_inf optimization flags
-@njit(parallel=True, fastmath={'nnan', 'ninf'})
+@njit(parallel=True, fastmath={'nnan', 'ninf'}, nogil=True)
 def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     '''
     computes the gravitational acceleration and potential for each particle due
@@ -60,6 +60,7 @@ def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     accel[:, 0:1] = G * np.dot((delx * inv_r3), mass)
     accel[:, 1:2] = G * np.dot((dely * inv_r3), mass)
     accel[:, 2:3] = G * np.dot((delz * inv_r3), mass)
+    accel = np.ascontiguousarray(accel)
 
     # calculate (N x N) particle-particle potential matrix
     potential_N = (G * mass.reshape(1, N)) / r
