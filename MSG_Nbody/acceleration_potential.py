@@ -12,7 +12,6 @@ Dependencies:
 import numpy as np
 from numba import njit
 
-# compute acceleration in parallel, with no_nan and no_inf optimization flags
 @njit(parallel=True, fastmath={'nnan', 'ninf'})
 def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     '''
