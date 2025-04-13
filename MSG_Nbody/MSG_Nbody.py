@@ -124,4 +124,4 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
             save_snapshot_2_binary_file(sim_snapshot, positions, velocities,
                                         potential, directory, N, i)
 
-    return r'simulation complete [yay!!! (ﾐΦ ﻌ Φﾐ)✿ *ᵖᵘʳʳ*]'
+    return r'simulation complete [yay!!! =＾● ᆺ ●＾= ✿✧･ﾟ: ✧･ﾟ]'
