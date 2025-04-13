@@ -15,7 +15,7 @@ from numba import njit
 @njit(parallel=True, fastmath={'nnan', 'ninf'})
 def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     '''
-    computes the gravitational acceleration and potential for each particle due
+    Computes the gravitational acceleration and potential for each particle due
     to all others using softened Newtonian gravity
     Parameters
     ----------
