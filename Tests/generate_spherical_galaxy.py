@@ -1,12 +1,38 @@
+'''
+Elko Gerville-Reache
+Created: October 30, 2023
+Updated: April 13, 2025
 
+Program to generate the initial conditions for a spherical galaxy in equilibrium from a Hernquist 
+density profile and distribution function:
+
+                                                                                   GM 
+           Mα                        1    E   d²ρ    1                Ψ(r) = -ϕ = –––––   (3)
+ρ(r) =  ––––––––   (1)      f(E) = ––––– ∫   ––––– ––––– dΨ   (2)                 r + α
+        2πr(r+α)³                   √8π² ⁰    dΨ²  √(E-Ψ)             
+                                                                      E = Ψ - 0.5v²   (4)
+                           
+
+where x,y,z positions are drawn from the enclosed mass curve obtained by integrating equation (1)
+and the 𝜈x,𝜈y,𝜈z velocities for each particle i are drawn from integrating equation (2) and assuming
+𝜈ᵢ∝𝜈²f(Ψᵢ-0.5v²) with 𝜈∈[0, 𝜈ₑ), 𝜈ₑ = √(2|Ψᵢ|)
+'''
 
 def spherical_galaxy(N, mass, scale_length):
-    '''generates the initial phase space coordinates for a Hernquist spherical galaxy in equilibrium
-    ------------------------------------------------------------------------------------------------
-    N [integer]: number of particles
-    mass [float]: total mass of galaxy
-    scale_length [float]: scale length of galaxy; radius at which density drops off substantially
-    OUTPUT [NumPy array]: N x 7 array of positions, velocities, and masses of galaxy
+    '''
+    Computes the initial phase space coordinates for a Hernquist spherical galaxy in energetic equilibrium
+    Parameters
+    ----------
+    N: int
+        number of particles
+    mass: float 
+        total mass of galaxy
+    scale_length: float
+        scale length of galaxy or radius at which the density drops off substantially
+    Returns
+    -------
+    initial_conditions: np.ndarray[np.float64] 
+        N x 7 array of positions, velocities, and masses of each particle in galaxy
     '''
     # import dependencies
     import numpy as np # numerical computation
@@ -160,6 +186,8 @@ def spherical_galaxy(N, mass, scale_length):
     
     positions, velocities, masses = scale_phase(positions, velocities, masses, mass, scale_length)
 
-    return np.hstack((positions, velocities, masses))
+    initial_conditions = np.hstack((positions, velocities, masses))
+    
+    return initial_conditions
 
 
