@@ -1,13 +1,13 @@
 '''
 Author: Elko Gerville-Reache
 Date Created: 2023-05-20
-Date Modified: 2025-04-12
+Date Modified: 2025-04-13
 Description:
     function for the computation of the gravitational acceleration and potential
-    experienced by a group of particles
-                       rⱼ-rᵢ
-     gᵢ = G ∑ⱼ mⱼ –––––––––––––––– 
-                   [|rⱼ-rᵢ|² + ϵ²]
+    experienced by a group of particles due to their combined gravitational attraction
+                    rⱼ-rᵢ                             mⱼ
+     gᵢ = G∑ⱼmⱼ–––––––––––––––––    (1)    ϕᵢ = G∑ⱼ–––––––––    (2)
+               [|rⱼ-rᵢ|² + ϵ²]³ᐟ²                  |rⱼ-rᵢ+ϵ²|
 Dependencies:
     - numpy
     - numba
@@ -52,7 +52,7 @@ def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     x = np.ascontiguousarray(pos[:, 0]).reshape(N, 1)
     y = np.ascontiguousarray(pos[:, 1]).reshape(N, 1)
     z = np.ascontiguousarray(pos[:, 2]).reshape(N, 1)
-    # calculate particle-particle seperations
+    # calculate NxN particle-particle seperation matrix
     delx = x.T - x
     dely = y.T - y
     delz = z.T - z
@@ -64,11 +64,12 @@ def compute_accel_potential(pos, mass, accel, potential, softening_sq, N):
     accel[:, 2:3] = G * np.dot((delz * inv_r3), mass)
     accel = np.ascontiguousarray(accel)
 
-    # calculate (N x N) particle-particle potential matrix
+    # calculate NxN particle-particle potential matrix
     potential_N = (G * mass.reshape(1, N)) / r
     # set diagonal elements to zero
     # these represent the potential of a particle onto itself which is unphysical
     np.fill_diagonal(potential_N, 0.0)
+    # sum along axis to sum contributions of each particle
     potential[:] = np.sum(potential_N, axis=0).reshape(N, 1)
 
     return accel, potential
