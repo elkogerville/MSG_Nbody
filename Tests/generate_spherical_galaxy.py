@@ -6,11 +6,11 @@ Updated: April 13, 2025
 Program to generate the initial conditions for a spherical galaxy in equilibrium from a Hernquist 
 density profile and distribution function:
 
-                                                                                   GM 
-           Mα                        1    E   d²ρ    1                Ψ(r) = -ϕ = –––––   (3)
-ρ(r) =  ––––––––   (1)      f(E) = ––––– ∫   ––––– ––––– dΨ   (2)                 r + α
+                                                                                    GM 
+           Mα                        1    E   d²ρ    1                 Ψ(r) = -ϕ = –––––   (3)
+ρ(r) =  ––––––––   (1)      f(E) = ––––– ∫   ––––– ––––– dΨ   (2)                  r + α
         2πr(r+α)³                   √8π² ⁰    dΨ²  √(E-Ψ)             
-                                                                      E = Ψ - 0.5v²       (4)
+                                                                       E = Ψ - 0.5v²       (4)
                            
 
 where x,y,z positions are drawn from the enclosed mass curve obtained by integrating equation (1)
