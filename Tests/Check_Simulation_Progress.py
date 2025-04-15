@@ -27,6 +27,8 @@ axes = [0,1]
 # plotting range of [-50, 50] in both dimensions
 scale = 50
 
+# –––––––––––––––––––––––––––––––––– PLOT ––––––––––––––––––––––––––––––––––––––
+
 # plot simulation
 N_timesteps = pos[0].shape[0]
 t = np.linspace(0, N_timesteps-1, 9)
