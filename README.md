@@ -176,7 +176,7 @@ plot_orbital_trajectory(pos_list, vel_list, mass_list, dt, timesteps, scale=80, 
 <a id="running-the-simulation-1"></a>
 ## Running the Simulation
 
-To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) function. This will create a new folder in the directory the function is ran from and save every 10 timesteps as a Nx7 $x,y,z,vx,vz,vy,\phi$ .npy file, where $\phi$ is the potential each particle feels.
+To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/MSG_Nbody.py#L20) function. This will create a new folder in the directory the function is ran from, and save every 10 timesteps the $x,y,z,vx,vz,vy,\phi$ of each particle as a Nx7 .npy file, where $\phi$ is the potential each particle feels. The rate of output files can be changed with the snapshot_save_rate parameter.
 ```python
 dt = 0.1
 timesteps = 2000
