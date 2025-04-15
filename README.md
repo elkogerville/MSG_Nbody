@@ -66,6 +66,10 @@ Because this algorithm calculates the gravitational force from each particle ont
   <img src="ANIMATIONS/sim2_pvd_t0_(0_-1_0).png" width="1000" align = 'center'>
 </figure>
 
+<div align="center">
+Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L463">plot_PVD</a> function
+</div>
+
 
 ## N-Body Particle-Particle Algorithm
 Once the gravitational acceleration onto each particle is computed for a given timestep using equation 2, the positions and velocities of the next timestep can then be calculated using the standard kinematic equations of motion (equations 4 and 5). The leap-frog algorithm computes the velocities and positions at interleaved timesteps where the velocities are calculated at half timesteps before and after computing the new positions. This creates a ’kick,’ ’drift,’ ’kick’ method conserving Energy to the second order and is a good trade-off between accuracy and computational efficiency. The new positions are then used to calculate a new set of accelerations, continuing the cycle endlessly.
