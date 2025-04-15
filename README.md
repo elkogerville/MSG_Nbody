@@ -67,7 +67,7 @@ Because this algorithm calculates the gravitational force from each particle ont
 </figure>
 
 <div align="center">
-Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L584">plot_PVD</a> function
+Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L584">plot_PVD</a> function.
 </div>
 
 ## N-Body Particle-Particle Algorithm
@@ -108,7 +108,7 @@ This would not have been possible without them. I would also like to thank my As
 </figure>
 
 <div align="center">
-Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1032">plot_grid3x3</a> function
+Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1032">plot_grid3x3</a> function.
 </div>
 
 # Documentation
