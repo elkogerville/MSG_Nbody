@@ -117,14 +117,14 @@ from MSG_Nbody import *
 <a id="simulation-setup-1"></a>
 ## Simulation Setup
 
-Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L14) function. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
+Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L21) function. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
 
 ```python
 path_2_file = 'Initial_Conditions/model_disk_3000.txt'
 glxy_pos, glxy_vel, glxy_mass = load_initial_conditions(path_2_file)
 ```
 
-It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, to scale our galaxy's mass and radius, use the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L40) function.
+It is often required to manipulate the initial conditions to properly set up a galaxy merger. MSG_Nbody provides a number of functions to facilitate this process. Most importantly, galaxy initial conditions are computed such that the galaxy is in energetic equilibrium when at rest. Thus, great care must be taken when scaling initial conditions. For example, to scale our galaxy's mass and radius, use the [scale_initial_positions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L47) function.
 
 ```python
 # scale galaxy mass and radius by a factor of 10
@@ -133,14 +133,14 @@ new_mass = 10
 glxy_pos, glxy_vel, glxy_mass = scale_initial_positions(glxy_pos, glxy_vel, glxy_mass, new_radius, new_mass)
 ```
 
-We can also rotate the disk about a specified axis using a rotation matrix, which will rotate the disk around the $x, y,$ or $z$ axis with the [rotate_disk](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L68) function.
+We can also rotate the disk about a specified axis using a rotation matrix, which will rotate the disk around the $x, y,$ or $z$ axis with the [rotate_disk](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L75) function.
 
 ```python
 # 45º rotation around y axis
 glxy_pos, glxy_vel = rotate_disk(glxy_pos, glxy_vel, 45, 'y')
 ```
 
-We can compute the escape velocity at a point r=[x,y,z] from the center of mass of the galaxy using the [compute_escape_velocity](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L112) function.
+We can compute the escape velocity at a point r=[x,y,z] from the center of mass of the galaxy using the [compute_escape_velocity](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L119) function.
 
 ```python
 # escape velocity at point P a distance |P| from a galaxy centered at [0,0,0]
@@ -148,7 +148,7 @@ P = [40,40,50]
 escape_velocity = compute_escape_velocity(P0[0], P0[1], P0[2], np.sum(glxy_mass))
 ```
 
-The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L139) function allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
+The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L259) function allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
 ```python
 # concatenate 3 sets of galaxy initial conditions, and save the resulting Nx7 initial conditions array to a .txt file
 # where N is the sum of the number of particles in each galaxy
