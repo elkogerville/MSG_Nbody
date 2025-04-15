@@ -82,7 +82,7 @@ The integrator saves the phase space coordinates $x,y,z,v_{x},v_{y},v_{z}$, and 
 </figure>
 
 <div align="center">
-Left: Log plot of the energy distribution of spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L473">plot_Ne</a> function.
+Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L473">plot_Ne</a> function.
 </div>
 <div align="center">
 Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy.
