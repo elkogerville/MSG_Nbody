@@ -126,7 +126,7 @@ from MSG_Nbody import *
 <a id="simulation-setup-1"></a>
 ## Simulation Setup
 
-Initial conditions are loaded into python using the [load_initial_conditions ](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L21) function. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
+Initial conditions are loaded into python using the [load_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L21) function. Initial conditions are assumed to be a Nx7 .txt file containing the $x,y,z$ positions, $vx,vy,vz$ velocities and masses $m$ of each particle n. Any initial conditions can be used as long as an Nx3 position array, an Nx3 velocity array, and an Nx1 mass array are provided.
 
 ```python
 path_2_file = 'Initial_Conditions/model_disk_3000.txt'
