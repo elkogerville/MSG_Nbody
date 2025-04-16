@@ -50,6 +50,10 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         last saved timestep. ex: if start_idx = 2000, the simulation will start
         from timestep 2001. the initial conditions passed into MSG_Nbody should
         be the positions and velocities of the particles at timestep 2000
+    block_size: int
+        size of the blocks used for batch processing of interactions.
+        if N < block_size, the algorithm degrades to processing the
+        interactions in one calculation. by default, block_size = 3000
     Returns
     -------
     None
@@ -61,7 +65,10 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     # compute number of particles
     N = positions.shape[0]
     # enforce appropriate array dimensions
-    if (positions.shape != (N, 3)) or (velocities.shape != (N, 3)) or (masses.shape != (N, 1)):
+    # if (positions.shape != (N, 3)) or (velocities.shape != (N, 3)) or (masses.shape != (N, 1)):
+    if (positions.shape != (N, 3)) or \
+       (velocities.shape != (N, 3)) or \
+       (masses.shape != (N, 1)):
         error_message = (
             "ERROR: Ensure 'gal_pos' and 'gal_vel' have shape (N, 3), "
             "and 'mass' has shape (N, 1), where N is the number of particles.\n"
@@ -77,6 +84,9 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     start_idx = 1
     if 'start_idx' in kwargs:
         start_idx = int(kwargs['start_idx'])
+    block_size = 3000
+    if 'block_size' in kwargs:
+        block_size = int(kwargs['block_size'])
     # ensure integer amount of timesteps
     timesteps = int(timesteps)
     directory = create_output_directory(N)
@@ -91,8 +101,10 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
                                                                         masses)
 
     # calculate initial accelerations
-    accel, potential = compute_accel_potential(positions, masses, accel,
-                                               potential, softening_sq, N)
+    accel, potential = compute_accel_potential(positions, masses,
+                                               accel, potential,
+                                               softening_sq, N,
+                                               block_size=block_size)
 
     # save initial conditions if starting from timestep = 0
     sim_snapshot = np.zeros((N, 7))
@@ -114,8 +126,10 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         positions += velocities * dt
 
         # update accelerations
-        accel, potential = compute_accel_potential(positions, masses, accel,
-                                                   potential, softening_sq, N)
+        accel, potential = compute_accel_potential(positions, masses,
+                                                   accel, potential,
+                                                   softening_sq, N
+                                                   block_size=block_size)
         # update velocities
         velocities += accel * dt/2.0
 
