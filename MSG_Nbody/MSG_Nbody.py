@@ -128,7 +128,7 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
         # update accelerations
         accel, potential = compute_accel_potential(positions, masses,
                                                    accel, potential,
-                                                   softening_sq, N
+                                                   softening_sq, N,
                                                    block_size=block_size)
         # update velocities
         velocities += accel * dt/2.0
