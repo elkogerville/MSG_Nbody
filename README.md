@@ -20,7 +20,7 @@ $ pip install MSG_Nbody
 <div align="justify"> 
 
 
-## [Documentation](#documentation)
+## See: [Documentation](#documentation)
 How to simulate and analyze a 10:1 minor merger of two disk galaxies with 6000 particles: [MSG_Nbody Documentation Notebook](DOCUMENTATION/MSG_Nbody_Documentation.ipynb).
 
 ## Uses
