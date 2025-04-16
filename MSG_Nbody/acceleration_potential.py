@@ -53,6 +53,7 @@ def compute_accel_potential(pos, mass, accel, potential,
         Nx1 array of the gravitational potential experienced by each particle
         due to all other particles
     '''
+    
     G = 1
     # zero accel and potential arrays
     accel.fill(0.0)
