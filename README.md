@@ -1,6 +1,6 @@
 # Merging Simulator for Galaxies [MSG]
 ## MSG_Nbody
-### N-body simulation code leveraging Numba using the particle-particle algorithm for studying galaxy mergers with particles on the order of ~3x10<sup>4</sup>
+### N-body simulation code leveraging Numba using the particle-particle algorithm for studying galaxy mergers with particles on the order of ~3x10<sup>5</sup>
 
 
 <p align="center">
