@@ -1,0 +1,16 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.py
+MSG_Nbody/MSG_Nbody.py
+MSG_Nbody/__init__.py
+MSG_Nbody/acceleration_potential.py
+MSG_Nbody/analysis.py
+MSG_Nbody/input_output.py
+MSG_Nbody/simulation_setup.py
+MSG_Nbody.egg-info/PKG-INFO
+MSG_Nbody.egg-info/SOURCES.txt
+MSG_Nbody.egg-info/dependency_links.txt
+MSG_Nbody.egg-info/requires.txt
+MSG_Nbody.egg-info/top_level.txt
