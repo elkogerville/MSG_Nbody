@@ -81,8 +81,9 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
 
     return positions, velocities
 
-def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
-            snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
+def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
+            user_colors=None, user_cmaps=None, snapshot_save_rate=10,
+            savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 2D projection of a simulation snapshot
     Parameters
@@ -103,7 +104,7 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    cmap: dict, optional
+    cmap_dict: dict, optional
         dictionary mapping an integer key (galaxy index number in pos)
         to an array of of shape N, where N is the number of particles in pos.
         used to apply a colormapping to that galaxy
@@ -111,11 +112,17 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
         t = 0
         galaxy_idx = 0
         dim = 0
-        cmap = {galaxy_idx: velocities[galaxy_idx][t,:,dim]}
+        cmap_dict = {galaxy_idx: velocities[galaxy_idx][t,:,dim]}
     cb_idx: int, optional
         the index of which cmap to use for the colorbar. by default is set to 0
         and corresponds to the lowest galaxy_idx in dict (see above). incrementing
         cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
+    user_colors: list of str, optional
+            allows user to override default colors/cmaps with a user
+            specified custom list of matplotlib colors/
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
     snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
@@ -139,25 +146,25 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            figsize = (6,6) if not cmap else (6.3, 5)
+            figsize = (6,6) if not cmap_dict else (6.3, 5)
             fig, ax = plt.subplots(figsize=figsize)
             ax.minorticks_on()
             ax.tick_params(axis='both', length=2, direction='in',
                            which='both', right=True, top=True)
             # set plot colors
-            pos, colors = set_plot_colors(pos, sort, dark_mode=dark_mode)
-            cmaps = ['RdPu_r', 'Greens', 'cool', 'cividis',
-                     'magma', 'inferno', 'hot', 'summer']
+            pos, colors, cmaps = set_plot_colors(pos, False, user_colors=user_colors,
+                                                 user_cmaps=user_cmaps, cmap_dict=cmap_dict,
+                                                 dark_mode=dark_mode)
             ax1, ax2 = axes
             ax_labels = ['X', 'Y', 'Z']
-            if cmap == False:
-                cmap = {}
+            if cmap_dict == None:
+                cmap_dict = {}
             counter = 0
             for i, galaxy in enumerate(pos):
-                colors_i = cmap.get(i, None)
+                colors_i = cmap_dict.get(i, None)
                 if colors_i is not None:
                     im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=0.5,
-                                    c=cmap[i], cmap=cmaps[counter%len(cmaps)])
+                                    c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
                     if counter == cb_idx:
                         cbar = fig.colorbar(im, ax=ax)
                         cbar.ax.set_ylabel(r'$V_{X}$', size=16)
@@ -181,7 +188,7 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
             plt.show()
 
 def display_galaxies(positions, timestep, sort=False, scale=100,
-                     savefig=False, dpi=300, dark_mode=False):
+                     user_colors=None, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot the xy and xz projections of a simulation snapshot
     Parameters
@@ -239,8 +246,9 @@ def display_galaxies(positions, timestep, sort=False, scale=100,
             ax[0].set_ylabel(r'Y', size=16)
             ax[1].set_ylabel(r'Z', size=16)
             # set plot colors
-            positions, colors = set_plot_colors(positions, sort,
-                                                dark_mode=dark_mode)
+            positions, colors, _ = set_plot_colors(positions, sort,
+                                                   user_colors=user_colors,
+                                                   dark_mode=dark_mode)
 
             # plot each array in the galaxies list
             for i, galaxy in enumerate(positions):
@@ -907,7 +915,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
             plt.show()
 
 def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
-                           savefig=False, dpi=300, dark_mode=False):
+                           user_colors=None, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot an orthogonal projection of a timestep with log density histograms
     Parameters
@@ -980,8 +988,9 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
                                  bottom=True, top=True, labelbottom=True, pad=5)
             ax_histy.xaxis.set_label_position("bottom")
             # set plot colors
-            positions, colors = set_plot_colors(positions, sort,
-                                                dark_mode=dark_mode)
+            positions, colors, _ = set_plot_colors(positions, sort,
+                                                   user_colors=user_colors,
+                                                   dark_mode=dark_mode)
 
             ax1, ax2 = axes
             # loop through each galaxy
@@ -1027,7 +1036,7 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
 
             plt.show()
 
-def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
+def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50, user_colors=None,
                  snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 3x3 grid plot of 9 simulation timesteps
@@ -1109,8 +1118,9 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
                     a[j].yaxis.set_major_locator(ticker.MaxNLocator(3))
                     counter += 1
             # set plot colors
-            positions, colors = set_plot_colors(positions, sort,
-                                                dark_mode=dark_mode)
+            positions, colors, _ = set_plot_colors(positions, sort,
+                                                   user_colors=user_colors,
+                                                   dark_mode=dark_mode)
             ax1, ax2 = axes
             axs[0][1].set_xlim(-scale, scale)
             axs[0][1].set_ylim(-scale, scale)
@@ -1150,10 +1160,59 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50,
 
             plt.show()
 
-def set_plot_colors(positions, sort, cmap='rainbow_r',
-                    trim=False, dark_mode=False):
+# def set_plot_colors(positions, sort, cmap='rainbow_r',
+#                     trim=False, dark_mode=False):
+#     '''
+#     Set plot colors based on plotting parameters
+#     Parameters
+#     ----------
+#     positions: list of np.ndarray[np.float64]
+#         list of TxNx3 arrays of positions, where T is the number
+#         of timesteps, N is the number of particles per galaxy,
+#         and 3 is the number of dimensions
+#     sort: boolean
+#         determines whether or not to concatenate positions into
+#         a single array for sorting
+#     cmap: matplotlib.pyplot cmap, optional
+#         sets the cmap of the plot
+#     trim: boolean, optional
+#         if True, returns a color array with len(positions)
+#     dark_mode: boolean, optional
+#         if True, uses a color palette tuned to the matplotlib
+#         dark_background style
+#     Returns
+#     -------
+#     positions:
+#         original positions array. if sort=True, the positions array
+#         is concatenated along axis=1
+#         ex: positions = [ ar1, ar2], sort=True
+#         ar1.shape: TxNx3
+#         ar2.shape: TxMx3
+#         returned positions shape: Tx(N+M)x3
+#     colors: array like
+#         list of colors for the plot
+#     '''
+#     colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+#     if dark_mode:
+#         colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
+#     # if sort, tag each particle in positions list
+#     # then concatenate into single array
+#     if sort:
+#         positions = [np.concatenate(tag_particles(positions), axis=1)]
+#     else:
+#         # if more galaxies than colors, generate new list of colors
+#         if len(positions) > len(colors):
+#             colors = plt.get_cmap(cmap)(np.linspace(0, 1, len(positions)))
+#     if trim:
+#         colors = np.array(colors[:len(positions)])
+
+#     return positions, colors
+
+def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
+                    cmap_dict=None, cmap='rainbow_r', dark_mode=False):
     '''
-    Set plot colors based on plotting parameters
+    Set plot colors for each plotting function based on the arguments
+    of the plotting function
     Parameters
     ----------
     positions: list of np.ndarray[np.float64]
@@ -1163,10 +1222,24 @@ def set_plot_colors(positions, sort, cmap='rainbow_r',
     sort: boolean
         determines whether or not to concatenate positions into
         a single array for sorting
+    user_colors: list of str, optional
+        allows user to override default colors/cmaps with a user
+        specified custom list of matplotlib colors/
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
+    cmap_dict: dictionary, optional
+        dictionary mapping an integer key (galaxy index number in pos)
+        to an array of of shape N, where N is the number of particles in pos.
+        used to apply a colormapping to that galaxy
+        example: map the x velocities of the first galxaxy in pos at timestep t=0
+        t = 0
+        galaxy_idx = 0
+        dim = 0
+        cmap = {galaxy_idx: velocities[galaxy_idx][t,:,dim]}
     cmap: matplotlib.pyplot cmap, optional
-        sets the cmap of the plot
-    trim: boolean, optional
-        if True, returns a color array with len(positions)
+        sets the cmap that colors are drawn from for the plot
+        in the case that more subarrays are provided than colors
     dark_mode: boolean, optional
         if True, uses a color palette tuned to the matplotlib
         dark_background style
@@ -1181,22 +1254,65 @@ def set_plot_colors(positions, sort, cmap='rainbow_r',
         returned positions shape: Tx(N+M)x3
     colors: array like
         list of colors for the plot
+    cmaps: array like
+        list of matplotlib cmaps for the plot
     '''
-    colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-    if dark_mode:
-        colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
-    # if sort, tag each particle in positions list
-    # then concatenate into single array
+    # default color list
+    colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD'] \
+             if dark_mode else ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+    # default cmap list
+    cmaps = ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
+             'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
+
+    # number of key:value pairs in cmap dictionary
+    N_cmap_dict = len(cmap_dict) if cmap_dict is not None else 0
+    N_galaxies = len(positions)
+    # concatenate positions if sort = True
     if sort:
         positions = [np.concatenate(tag_particles(positions), axis=1)]
-    else:
-        # if more galaxies than colors, generate new list of colors
-        if len(positions) > len(colors):
-            colors = plt.get_cmap(cmap)(np.linspace(0, 1, len(positions)))
-    if trim:
-        colors = np.array(colors[:len(positions)])
+        # if sort = True, cmaps cannot be used
+        N_cmap_dict = 0
+        if user_cmaps is not None:
+            user_cmaps = None
+            print('WARNING: user_cmap provided with sort=True\n',
+                  'cmaps can only be used with sort=False')
+    # number of colors needed is total number of galaxies
+    # minus number of galaxies mapped to a cmap
+    N_colors_needed = N_galaxies - N_cmap_dict
 
-    return positions, colors
+    # ensure enough colors are provided
+    if user_colors is not None:
+        # ensure enough colors are provided
+        if (len(user_colors) >= N_colors_needed):
+            colors = user_colors
+        else:
+            # if enough default colors to plot all galaxies
+            if (N_galaxies <= len(colors)):
+                print('WARNING: not enough user specified colors\n',
+                      f'number of user colors: {len(user_colors)}\n',
+                      f'number of colors needed: {N_colors_needed}\n',
+                      f'defaulting to MSG_Nbody colors list: {colors[:N_colors_needed]}')
+            # if more galaxies than default colors
+            else:
+                print('WARNING: not enough user specified colors\n',
+                      f'number of user colors: {len(user_colors)}\n',
+                      f'number of colors needed: {N_colors_needed}\n',
+                      f'defaulting to drawing color sequence from cmap {cmap}')
+    # if more galaxies than default colors
+    if N_galaxies > len(colors):
+        colors = plt.get_cmap(cmap)(np.linspace(0, 1, N_galaxies))
+
+    if user_cmaps is not None:
+        # ensure enough cmaps are provided
+        if (len(user_cmaps) >= N_cmap_dict):
+            cmaps = user_cmaps
+        else:
+            print('WARNING: not enough user specified cmaps\n',
+                  f'number of user cmaps: {len(user_cmaps)}\n',
+                  f'number of cmaps needed: {N_cmap_dict}\n',
+                  f'defaulting to MSG_Nbody cmaps list: {cmaps[:len(positions)]}')
+
+    return positions, colors, cmaps
 
 def tag_particles(positions):
     '''
