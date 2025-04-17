@@ -127,6 +127,107 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
 
             plt.show()
 
+def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_cb=False, cb_idx=0,
+            user_colors=None, user_cmaps=None, axes_off=False, savefig=False, dpi=300, dark_mode=False):
+    '''
+    Plot a 2D projection of a simulation snapshot
+    Parameters
+    ----------
+    pos: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    t: int
+        timestep to plot. because the simulation only saves a snapshot every
+        'snapshot_save_rate', the total number of recorded timesteps is
+        timesteps/snapshot_save_rate. thus, a simulation ran for 2000 timesteps
+        with snapshot_save_rate = 10 will only have 200 timesteps to plot
+    elev, azim, roll: float
+        sets inclination, azimuthal, and sky plane rotation angles for
+        the camera perspective of the plot
+    scale: float, optional
+        defines the half-width of the plotting region. the x and y limits
+        will be set to (-scale, scale)
+    cmap_dict: dict, optional
+        dictionary mapping an integer key (galaxy index number in pos)
+        to an array of of shape N, where N is the number of particles in pos.
+        used to apply a colormapping to that galaxy
+        example: map the x velocities of the first galxaxy in pos at timestep t=0
+        t = 0
+        galaxy_idx = 0
+        vx = velocities[galaxy_idx][t,:,0]
+        cmap_dict = {galaxy_idx: vx}
+    plot_cb: boolean, optional
+        if True, plots the colorbar in cmap_dict at index cb_idx
+    cb_idx: int, optional
+        the index of which cmap to use for the colorbar. by default is set to 0
+        and corresponds to the lowest galaxy_idx in dict (see above). incrementing
+        cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
+    user_colors: list of str, optional
+            allows user to override default colors/cmaps with a user
+            specified custom list of matplotlib colors/
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
+    axes_off: boolean, optional
+        if True, disables plot axes. False by default
+    savefig: boolean, optional
+        saves the figure to the working directory if True
+    dpi: int, optional
+        dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
+        '''
+    style = 'dark_background' if dark_mode else 'default'
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig = plt.figure(figsize = (10, 10))
+
+            ax = plt.axes(projection='3d')
+            ax.view_init(elev=elev, azim=azim, roll=roll)
+            if axes_off:
+                ax.set_axis_off()
+            if cmap == False:
+                cmap = {}
+            pos, colors, cmaps = set_plot_colors(pos, False, user_colors=user_colors,
+                                                 user_cmaps=user_cmaps, dark_mode=dark_mode)
+            counter = 0
+            for i, galaxy in enumerate(pos):
+                gal = galaxy[t]
+                colors_i = cmap.get(i, None)
+                if colors_i is not None:
+                    im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.2,
+                                      c=cmap[i], cmap=cmaps[counter%len(pos)])
+                    if counter == cb_idx and plot_cb:
+                        cbar = fig.colorbar(im, ax=ax, shrink=0.5)
+                        cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                    counter += 1
+                else:
+                    ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.1, alpha=0.8, c=colors[i])
+
+            ax.set_xlabel('X', size = 16)
+            ax.set_ylabel('Y', size = 16)
+            ax.set_zlabel('Z', size = 16)
+            ax.set_xlim(-scale, scale)
+            ax.set_ylim(-scale, scale)
+            ax.set_zlim(-scale, scale)
+
+            # set border color to white
+            ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+            ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+            ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+            # hide gridlines
+            ax.grid(False)
+
+            plt.tight_layout()
+            if savefig:
+                save_figure_2_disk(dpi)
+            plt.show()
+
 def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
                 user_cmaps=None, savefig=False, dpi=300, dark_mode=False):
     '''
