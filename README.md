@@ -110,7 +110,7 @@ This would not have been possible without them. I would also like to thank my As
 </figure>
 
 <div align="center">
-Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1032">plot_grid3x3</a> function.
+Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L420">plot_grid3x3</a> function.
 </div>
 
 # Documentation
@@ -198,6 +198,13 @@ N_particles = [3000, 3000]
 positions, velocities, potentials = load_simulation_outputs(path_2_snapshots, N_particles)
 ```
 
+
+To display a simulation snapshot at a timestep $t$, use the [display_galaxies](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L185) function. Keep in mind that if every 10 timesteps are saved, the total number of snapshots available to plot is the number of timesteps divided by snapshot_save_rate.
+```python
+timestep = 300
+display_galaxies(positions, timestep, sort=True, scale=30)
+```
+
 To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L24) function.
 ```python
 # shift all particles to simulation center of mass frame
@@ -205,12 +212,6 @@ positions, velocities = shift_2_com_frame(positions, velocities, masses)
 # shift all particles to galaxy 1 center of mass frame
 # this centers everything around glxy1
 positions, velocities = shift_2_com_frame(positions, velocities, gxy1_mass, galaxy_idx=0)
-```
-
-To display a simulation snapshot at a timestep $t$, use the [display_galaxies](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L185) function. Keep in mind that if every 10 timesteps are saved, the total number of snapshots available to plot is the number of timesteps divided by snapshot_save_rate.
-```python
-timestep = 300
-display_galaxies(positions, timestep, sort=True, scale=30)
 ```
 
 Alternatively, a 3x3 grid plot showing 9 timesteps can be plotted with the [plot_3x3grid](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1032) function.
