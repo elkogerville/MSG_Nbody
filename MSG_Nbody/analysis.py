@@ -144,8 +144,6 @@ def plot_2D(pos, t, axes, scale=50, cmap=False, cb_idx=0, sort=False,
             ax.minorticks_on()
             ax.tick_params(axis='both', length=2, direction='in',
                            which='both', right=True, top=True)
-            plt.rcParams['axes.linewidth'] = 0.6
-            plt.rcParams['font.family'] = 'Courier New'
             # set plot colors
             pos, colors = set_plot_colors(pos, sort, dark_mode=dark_mode)
             cmaps = ['RdPu_r', 'Greens', 'cool', 'cividis',
@@ -1241,8 +1239,8 @@ def sort_positions(positions, timestep, axes, color_arr):
     Parameters
     ----------
     positions: list of np.ndarray[np.float64]
-        list of len(1) containing a TxNx4 array of x,y,z positions, where the 
-        4th column contains a unique tag for each galaxy. Thus all particles 
+        list of len(1) containing a TxNx4 array of x,y,z positions, where the
+        4th column contains a unique tag for each galaxy. Thus all particles
         in each galaxy N have a tag of N-1
     timestep:
         timestep to plot
