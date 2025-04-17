@@ -69,7 +69,7 @@ Because this algorithm calculates the gravitational force from each particle ont
 </figure>
 
 <div align="center">
-Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L584">plot_PVD</a> function.
+Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L544">plot_PVD</a> function.
 </div>
 
 ## N-Body Particle-Particle Algorithm
@@ -84,10 +84,10 @@ The integrator saves the phase space coordinates $x,y,z,v_{x},v_{y},v_{z}$, and 
 </figure>
 
 <div align="center">
-Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L473">plot_Ne</a> function.
+Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L870">plot_Ne</a> function.
 </div>
 <div align="center">
-Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy.
+Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy using <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L130">plot_3D</a>.
 </div>
 <br>
 
