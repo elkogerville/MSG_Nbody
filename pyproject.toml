@@ -1,3 +1,53 @@
 [build-system]
-requires = ["setuptools>=64", "twine"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "MSG_Nbody"
+version = "0.2.2"
+description = "Nbody simulation code for galaxy interactions"
+authors = [
+    {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
+]
+readme = "README_MSG.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "numba",
+    "tqdm",
+    "matplotlib",
+    "scipy",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.egg-info/*",
+    "*.egg-info",
+    "EGG-INFO/*",  # Additional pattern just in case
+]
+
+[tool.setuptools.packages.find]
+where = ["."]  # current directory
+exclude = [
+    "ANIMATIONS*",
+    "DOCUMENTATION*",
+    "Initial_Conditions*", 
+    "Tests*",
+    "build*",
+    "dist*",
+    "*egg-info*",
+    "*.egg-info",
+    "EGG-INFO*",
+]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "LICENSE"]
