@@ -569,7 +569,8 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                   user_cmaps=None, snapshot_save_rate=10,
                   savefig=False, dpi=300, dark_mode=False):
     '''
-    Plot a 3x3 hexbin grid plot of 9 simulation timesteps
+    Plot a grid of hexbin plots to visualize particle positions across 
+    multiple snapshots, for any arbitrary number of rows and cols
     Parameters
     ----------
     positions: list of np.ndarray[np.float64]
