@@ -18,6 +18,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
+from matplotlib.colors import ListedColormap
 from tqdm import tqdm
 from .input_output import save_figure_2_disk, error_handling_axes
 
@@ -556,6 +557,154 @@ def plot_grid3x3(positions, timesteps, axes, sort=False,
             axs[2][1].set_xlabel(labels[ax1], size = 16)
             axs[1][0].set_ylabel(labels[ax2], size = 16)
             plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
+
+            plt.show()
+
+
+def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
+                  N_subplots=[3,3], sort=False, scale=50,
+                  user_cmaps=None, snapshot_save_rate=10,
+                  savefig=False, dpi=300, dark_mode=False):
+    '''
+    Plot a 3x3 hexbin grid plot of 9 simulation timesteps
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    axes: list of int
+        list or array of length 2 specifying which two axes
+        (0 for x, 1 for y, 2 for z) should be used for the projection.
+        ex: axes = [0,1] would specify the xy projection
+    gridsize: int
+        number of hexagons in the x-direction. the number of hexagons in the
+        y-direction is chosen such that the hexagons are approximately regular
+    timestep: list of int, optional
+        by default is set to 'auto' and will plot T equally spaced timesteps
+        from 0 to the last timestep, where T is the number of subplots
+        (T = np.prod(N_subplots)). can also be a list of timesteps to plot with
+        length T. because the simulation only saves a snapshot every
+        'snapshot_save_rate', the total number of recorded timesteps is
+        timesteps/snapshot_save_rate. thus, a simulation ran for 2000
+        timesteps with snapshot_save_rate = 10 will only have 200 timesteps to plot
+    N_subplots: list of int
+        list of two integers [Nx, Ny] specifying the number of subplots
+        in the horizontal (rows, Nx) and vertical (columns, Ny) directions
+    sort: boolean, optional
+        if True, will bin all particles in the same hexbin using one cmap
+    scale: float, optional
+        defines the half-width of the plotting region. the x and y limits
+        will be set to (-scale, scale)
+    snapshot_save_rate: int, optional
+        the frequency (in terms of timesteps) at which simulation
+        snapshots are saved. is used to convert from timestep index
+        to actual simulation timestep. by default is set to 10.
+        this should match the value of the simulation snapshot_save_rate
+    savefig: boolean, optional
+        saves the figure to the working directory if True
+    dpi: int, optional
+        dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
+    '''
+    def get_ax(i, j, axs, Nx, Ny):
+        if Nx == 1 and Ny == 1:
+            return axs
+        elif Nx == 1:
+            return axs[j]
+        elif Ny == 1:
+            return axs[i]
+        else:
+            return axs[i][j]
+    # error handling
+    axes = error_handling_axes(axes)
+    if timesteps == 'auto':
+        t_last = positions[0].shape[0]-1
+        timesteps = np.linspace(0, t_last, np.prod(N_subplots))
+    else:
+        if len(timesteps) != np.prod(N_subplots):
+            error = (f'timesteps should be a list of length {np.prod(N_subplots)} \n')
+            raise ValueError(error)
+    timesteps = [int(t) for t in timesteps]
+    N_subplots = [int(n) for n in N_subplots]
+
+    labels = ['X', 'Y', 'Z']
+    extent = [-scale, scale, -scale, scale]
+    ax1, ax2 = axes
+    Nx, Ny = N_subplots
+    subplot_size = 3.5
+    figsize = (Ny*subplot_size, Nx*subplot_size)
+    # plot grid
+    # ---------
+    style = 'dark_background' if dark_mode else 'default'
+    ec = (0, 0, 0) if dark_mode else (1, 1, 1)
+    fc = (0, 0, 0) if dark_mode else (1, 1, 1)
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig = plt.figure(figsize=figsize)
+            # define 3x3 grid of subplots
+            gs = fig.add_gridspec(Nx, Ny, hspace = 0, wspace = 0)
+            (axs) = gs.subplots(sharex=True, sharey=True)
+
+            # store params for each plot
+            labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
+            labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
+
+            # generate each subplot
+            counter = 0
+            for i in range(Nx):
+                for j in range(Ny):
+                    ax = get_ax(i, j, axs, Nx, Ny)
+                    ax.minorticks_on()
+                    ax.tick_params(axis='both', length=2, direction='in',
+                                     which='both', labeltop=labeltop[i][j],
+                                     labelright=labelright[i][j],
+                                     right=True, top=True)
+                    ax.xaxis.set_major_locator(ticker.MaxNLocator(3))
+                    ax.yaxis.set_major_locator(ticker.MaxNLocator(3))
+                    ax.set_box_aspect(1)
+                    counter += 1
+            fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+            fig.text(0.5, 0.06, labels[ax1], ha='center', va='center', fontsize=16)
+            fig.text(0.06, 0.5, labels[ax2], ha='center', va='center', rotation='vertical', fontsize=16)
+            # set plot colors
+            positions, _, cmaps = set_plot_colors(positions, False,
+                                                  user_cmaps=user_cmaps,
+                                                  dark_mode=dark_mode)
+            N = 1 if sort else len(cmaps)
+            ax = get_ax(0, 0, axs, Nx, Ny)
+            ax.set_xlim(-scale, scale)
+            ax.set_ylim(-scale, scale)
+
+            if sort:
+                positions = [np.concatenate(positions, axis=1)]
+            # loop through each galaxy
+            for i in range(len(positions)):
+                counter = 0
+                pos = positions[i]
+                # loop through each plot
+                for j in range(Nx):
+                    # loop through each subplot
+                    for k in range(Ny):
+                        timestep_label = timesteps[counter]*snapshot_save_rate
+                        t = timesteps[counter]
+                        ax = get_ax(j, k, axs, Nx, Ny)
+                        ax.hexbin(pos[t,:,ax1], pos[t,:,ax2], gridsize=gridsize,
+                                   bins='log', extent=extent, cmap=cmaps[i%N])
+                        # timestep legend
+                        ax.text(-scale*0.85, scale*0.85,
+                                f't = {timestep_label}',
+                                size=10, bbox=dict(boxstyle="round",
+                                                   ec=ec,fc=fc,))
+                        counter += 1
             # if savefig is True, save figure to directory
             if savefig:
                 save_figure_2_disk(dpi)
@@ -1533,15 +1682,21 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
     # default color list
     # colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD'] \
     #          if dark_mode else ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+    YlGnBu_r = plt.get_cmap('YlGnBu_r')
+    YlGnBu_r = ListedColormap(YlGnBu_r(np.linspace(0.2, 1, 256)))
     colors = (
         ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
         if dark_mode else
         ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD', 'k']
     )
     # default cmap list
-    cmaps = ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
-             'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
-
+    cmaps = (
+        ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
+        'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
+        if dark_mode else
+        [YlGnBu_r, 'RdPu_r', 'Purples_r', 'cividis',
+        'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
+    )
     # number of key:value pairs in cmap dictionary
     N_cmap_dict = len(cmap_dict) if cmap_dict is not None else 0
     N_galaxies = len(positions)
