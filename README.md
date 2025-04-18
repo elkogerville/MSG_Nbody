@@ -32,7 +32,7 @@ The MSG_Nbody Python package offers an efficient, fully vectorized and paralleli
 </figure>
 
 <div align="center">
-10:1 merger with 130,000 particles plotted with the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L544">plot_hexgrid</a> function.
+10:1 merger with 130,000 particles plotted with the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L598">plot_hexpanel</a> function.
 </div>
 
 ## Documentation and How to Use
@@ -76,7 +76,7 @@ Because this algorithm calculates the gravitational force from each particle ont
 </figure>
 
 <div align="center">
-Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L544">plot_PVD</a> function.
+Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L772">plot_PVD</a> function.
 </div>
 
 ## N-Body Particle-Particle Algorithm
@@ -91,10 +91,10 @@ The integrator saves the phase space coordinates $x,y,z,v_{x},v_{y},v_{z}$, and 
 </figure>
 
 <div align="center">
-Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L870">plot_Ne</a> function.
+Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1104">plot_Ne</a> function.
 </div>
 <div align="center">
-Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy using <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L130">plot_3D</a>.
+Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy using <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L133">plot_3D</a>.
 </div>
 <br>
 
@@ -117,7 +117,7 @@ This would not have been possible without them. I would also like to thank my As
 </figure>
 
 <div align="center">
-Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L420">plot_grid3x3</a> function.
+Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L445">plot_panel</a> function.
 </div>
 
 # Documentation
