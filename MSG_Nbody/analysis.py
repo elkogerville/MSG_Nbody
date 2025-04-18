@@ -442,7 +442,7 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
 
             plt.show()
 
-def plot_panel(positions, axes, gridsize, timesteps='auto',
+def plot_panel(positions, axes, timesteps='auto',
                nrows_ncols=[3,3], sort=True, scale=50,
                user_colors=None, snapshot_save_rate=10,
                savefig=False, dpi=300, dark_mode=False):
@@ -459,9 +459,6 @@ def plot_panel(positions, axes, gridsize, timesteps='auto',
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
-    gridsize: int
-        number of hexagons in the x-direction. the number of hexagons in the
-        y-direction is chosen such that the hexagons are approximately regular
     timestep: list of int, optional
         by default is set to 'auto' and will plot T equally spaced timesteps
         from 0 to the last timestep, where T is the number of subplots
