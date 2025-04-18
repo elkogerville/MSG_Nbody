@@ -189,7 +189,7 @@ To run the simulation, use the [MSG_Nbody](https://github.com/elkogerville/MSG_N
 ```python
 dt = 0.1
 timesteps = 2000
-MSG_nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
+MSG_Nbody(positions, velocities, masses, dt, timesteps, snapshot_save_rate=10)
 ```
 
 The gravitational acceleration and potential felt by each particle due to the interactions of each particle is computed using a softened Newtonian potential in the [compute_accel_potential](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/acceleration_potential.py#L19) function.
@@ -197,7 +197,7 @@ The gravitational acceleration and potential felt by each particle due to the in
 <a id="simulation-analysis-1"></a>
 ## Simulation Analysis
 
-To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) function. This will separate each timestep into an arbitrary number of subarrays. Each returned object is a list of len(N_particles) containing the separated position, velocity, and potential array of each galaxy. The arrays each have shapes TxNx3 for positions and velocities, and TxNx1 for masses, where T is the number of timesteps.
+To load simulation snapshots back into python, use the [load_simulation_outputs](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/input_output.py#L21) function. This will separate each timestep into an arbitrary number of subarrays. Each returned object is a list of len(N_particles) containing the separated position, velocity, and potential array of each galaxy. The arrays each have shapes TxNx3 for positions and velocities, and TxNx1 for masses, where T is the number of timesteps. Keep in mind the number of timesteps T is the total number of timesteps simulated divided by snapshot_save_rate.
 ```python
 path_2_snapshots = 'simulation_outputs_N6000/*'
 # number of particles per galaxy
@@ -205,14 +205,20 @@ N_particles = [3000, 3000]
 positions, velocities, potentials = load_simulation_outputs(path_2_snapshots, N_particles)
 ```
 
-
-To display a simulation snapshot at a timestep $t$, use the [display_galaxies](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L185) function. Keep in mind that if every 10 timesteps are saved, the total number of snapshots available to plot is the number of timesteps divided by snapshot_save_rate.
+For an overview of the simulation, the [plot_panel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L445) and [plot_hexpanel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L598) functions will plot any arbitrary number of timesteps in the format (nrows x ncols).
 ```python
-timestep = 300
-display_galaxies(positions, timestep, sort=True, scale=30)
+# by default plots a 3x3 grid
+axes = [0,1]
+plot_panel(positions, axes)
+
+# explicitly set timesteps and 2x3 grid
+t = [25, 62, 80, 124, 198, 248]
+nrows_ncols = [2,3]
+gridsize = 300
+plot_hexpanel(positions, axes, gridsize, t, nrows_ncols)
 ```
 
-To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L24) function.
+To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1516) function.
 ```python
 # shift all particles to simulation center of mass frame
 positions, velocities = shift_2_com_frame(positions, velocities, masses)
