@@ -293,7 +293,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             extent = [-scale, scale, -scale, scale]
             positions, _, cmaps = set_plot_colors(positions, False,
                                                   user_cmaps=user_cmaps,
-						  dark_mode=dark_mode)
+                                                  dark_mode=dark_mode)
             N = 1 if sort else len(cmaps)
             counter = 0
             for i, pos in enumerate(positions):
