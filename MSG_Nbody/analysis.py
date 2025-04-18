@@ -249,6 +249,10 @@ def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
         'snapshot_save_rate', the total number of recorded timesteps is
         timesteps/snapshot_save_rate. thus, a simulation ran for 2000 timesteps
         with snapshot_save_rate = 10 will only have 200 timesteps to plot
+    axes: list of int
+        list or array of length 2 specifying which two axes
+        (0 for x, 1 for y, 2 for z) should be used for the projection.
+        ex: axes = [0,1] would specify the xy projection
     gridsize: int
         number of hexagons in the x-direction. the number of hexagons in the
         y-direction is chosen such that the hexagons are approximately regular
@@ -284,7 +288,8 @@ def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
             labels = ['X', 'Y', 'Z']
             extent = [-scale, scale, -scale, scale]
             positions, _, cmaps = set_plot_colors(positions, False,
-                                                  user_cmaps=user_cmaps)
+                                                  user_cmaps=user_cmaps,
+						  dark_mode=dark_mode)
             N = 1 if sort else len(cmaps)
             counter = 0
             for i, pos in enumerate(positions):
@@ -543,6 +548,129 @@ def plot_grid3x3(positions, timesteps, axes, sort=False,
                                               s=0.1, color=colors[i])
                         # timestep legend
                         axs[j][k].text(-scale*0.9, scale*0.9,
+                                       f't = {timestep_label}',
+                                       size=10, bbox=dict(boxstyle="round",
+                                                          ec=ec,fc=fc,))
+                        counter += 1
+
+            axs[2][1].set_xlabel(labels[ax1], size = 16)
+            axs[1][0].set_ylabel(labels[ax2], size = 16)
+            plt.tight_layout()
+            # if savefig is True, save figure to directory
+            if savefig:
+                save_figure_2_disk(dpi)
+
+            plt.show()
+
+def plot_hexbin3x3(positions, timesteps, axes, gridsize, sort=False,
+                   scale=50, user_cmaps=None, snapshot_save_rate=10,
+                   savefig=False, dpi=300, dark_mode=False):
+    '''
+    Plot a 3x3 hexbin grid plot of 9 simulation timesteps
+    Parameters
+    ----------
+    positions: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    timestep: list of int
+        list of timesteps to plot with length 9. because the simulation only
+        saves a snapshot every 'snapshot_save_rate', the total number of
+        recorded timesteps is timesteps/snapshot_save_rate. thus, a simulation
+        ran for 2000 timesteps with snapshot_save_rate = 10 will only have
+        200 timesteps to plot
+    axes: list of int
+        list or array of length 2 specifying which two axes
+        (0 for x, 1 for y, 2 for z) should be used for the projection.
+        ex: axes = [0,1] would specify the xy projection
+    gridsize: int
+        number of hexagons in the x-direction. the number of hexagons in the
+        y-direction is chosen such that the hexagons are approximately regular
+    sort: boolean, optional
+        if True, will bin all particles in the same hexbin using one cmap
+    scale: float, optional
+        defines the half-width of the plotting region. the x and y limits
+        will be set to (-scale, scale)
+    user_cmaps: list of str
+        list of matplotlib cmaps to use the plot cmaps
+    snapshot_save_rate: int, optional
+        the frequency (in terms of timesteps) at which simulation
+        snapshots are saved. is used to convert from timestep index
+        to actual simulation timestep. by default is set to 10.
+        this should match the value of the simulation snapshot_save_rate
+    savefig: boolean, optional
+        saves the figure to the working directory if True
+    dpi: int, optional
+        dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
+    '''
+    # error handling
+    axes = error_handling_axes(axes)
+    if len(timesteps) != 9:
+        error = ('timesteps should be a list of length 9 \n'
+                'ex: plot first 9 snapshots: [0,1,2,3,4,5,6,7,8]')
+        raise ValueError(error)
+    timesteps = [int(t) for t in timesteps]
+    labels = ['X', 'Y', 'Z']
+    extent = [-scale, scale, -scale, scale]
+    # plot grid
+    # ---------
+    style = 'dark_background' if dark_mode else 'default'
+    ec = (0, 0, 0) if dark_mode else (1, 1, 1)
+    fc = (0, 0, 0) if dark_mode else (1, 1, 1)
+    with plt.style.context(style):
+        with plt.rc_context({
+            'axes.linewidth': 0.6,
+            'font.family': ['Courier New', 'DejaVu Sans Mono'],
+            'mathtext.default': 'regular'
+        }):
+            fig = plt.figure(figsize = (10,10))
+            # define 3x3 grid of subplots
+            gs = fig.add_gridspec(3, 3, hspace = 0, wspace = 0)
+            (axs) = gs.subplots(sharex=True, sharey=True)
+            # store params for each plot
+            labeltop = [[True,True,True], [False,False,False],
+                        [False,False,False]]
+            labelright = [[False,False,True], [False,False,True],
+                          [False,False,True]]
+            # generate each subplot
+            counter = 0
+            for i, a in enumerate(axs):
+                for j in range(3):
+                    a[j].minorticks_on()
+                    a[j].tick_params(axis='both', length=1.7, direction='in',
+                                     which='both', labeltop=labeltop[i][j],
+                                     labelright=labelright[i][j],
+                                     right=True, top=True)
+                    a[j].xaxis.set_major_locator(ticker.MaxNLocator(3))
+                    a[j].yaxis.set_major_locator(ticker.MaxNLocator(3))
+                    counter += 1
+            # set plot colors
+            positions, _, cmaps = set_plot_colors(positions, False,
+                                                  user_cmaps=user_cmaps,
+                                                  dark_mode=dark_mode)
+            N = 1 if sort else len(cmaps)
+            ax1, ax2 = axes
+            axs[0][1].set_xlim(-scale, scale)
+            axs[0][1].set_ylim(-scale, scale)
+            if sort:
+                positions = [np.concatenate(positions, axis=1)]
+            # loop through each galaxy
+            for i in range(len(positions)):
+                counter = 0
+                pos = positions[i]
+                # loop through each plot
+                for j in range(3):
+                    # loop through each subplot
+                    for k in range(3):
+                        timestep_label = timesteps[counter]*snapshot_save_rate
+                        t = timesteps[counter]
+
+                        axs[j][k].hexbin(pos[t,:,ax1], pos[t,:,ax2], gridsize=gridsize,
+                                         bins='log', extent=extent, cmap=cmaps[i%N])
+                        # timestep legend
+                        axs[j][k].text(-scale*0.85, scale*0.85,
                                        f't = {timestep_label}',
                                        size=10, bbox=dict(boxstyle="round",
                                                           ec=ec,fc=fc,))
