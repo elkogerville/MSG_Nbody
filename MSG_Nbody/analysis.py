@@ -92,8 +92,10 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
             ax.tick_params(axis='both', length=2, direction='in',
                            which='both', right=True, top=True)
             # set plot colors
-            pos, colors, cmaps = set_plot_colors(pos, False, user_colors=user_colors,
-                                                 user_cmaps=user_cmaps, cmap_dict=cmap_dict,
+            pos, colors, cmaps = set_plot_colors(pos, False,
+                                                 user_colors=user_colors,
+                                                 user_cmaps=user_cmaps,
+                                                 cmap_dict=cmap_dict,
                                                  dark_mode=dark_mode)
             ax1, ax2 = axes
             ax_labels = ['X', 'Y', 'Z']
@@ -127,8 +129,9 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
 
             plt.show()
 
-def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_cb=False, cb_idx=0,
-            user_colors=None, user_cmaps=None, axes_off=False, savefig=False, dpi=300, dark_mode=False):
+def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
+            plot_cb=False, cb_idx=0, user_colors=None, user_cmaps=None,
+            axes_off=False, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 2D projection of a simulation snapshot
     Parameters
@@ -152,7 +155,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_c
         dictionary mapping an integer key (galaxy index number in pos)
         to an array of of shape N, where N is the number of particles in pos.
         used to apply a colormapping to that galaxy
-        example: map the x velocities of the first galxaxy in pos at timestep t=0
+        example: map x velocities of the first galxaxy in pos at timestep t=0
         t = 0
         galaxy_idx = 0
         vx = velocities[galaxy_idx][t,:,0]
@@ -161,8 +164,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_c
         if True, plots the colorbar in cmap_dict at index cb_idx
     cb_idx: int, optional
         the index of which cmap to use for the colorbar. by default is set to 0
-        and corresponds to the lowest galaxy_idx in dict (see above). incrementing
-        cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
+        and corresponds to the lowest galaxy_idx in dict (see above).
+        incrementing cb_idx by 1 will select the next galaxy_idx in the cmap dict
     user_colors: list of str, optional
             allows user to override default colors/cmaps with a user
             specified custom list of matplotlib colors/
@@ -193,8 +196,10 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_c
                 ax.set_axis_off()
             if cmap == False:
                 cmap = {}
-            pos, colors, cmaps = set_plot_colors(pos, False, user_colors=user_colors,
-                                                 user_cmaps=user_cmaps, dark_mode=dark_mode)
+            pos, colors, cmaps = set_plot_colors(pos, False,
+                                                 user_colors=user_colors,
+                                                 user_cmaps=user_cmaps,
+                                                 dark_mode=dark_mode)
             counter = 0
             for i, galaxy in enumerate(pos):
                 gal = galaxy[t]
@@ -207,7 +212,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False, plot_c
                         cbar.ax.set_ylabel(r'$V_{X}$', size=16)
                     counter += 1
                 else:
-                    ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.1, alpha=0.8, c=colors[i])
+                    ax.scatter3D(gal[:,0], gal[:,1], gal[:,2],
+                                 s=0.1, alpha=0.8, c=colors[i])
 
             ax.set_xlabel('X', size = 16)
             ax.set_ylabel('Y', size = 16)
@@ -295,8 +301,9 @@ def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
 
             plt.show()
 
-def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
-                           user_colors=None, savefig=False, dpi=300, dark_mode=False):
+def plot_density_histogram(positions, timestep, axes, sort=False,
+                           scale=100, user_colors=None, savefig=False,
+                           dpi=300, dark_mode=False):
     '''
     Plot an orthogonal projection of a timestep with log density histograms
     Parameters
@@ -341,21 +348,22 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
             'mathtext.default': 'regular'
         }):
             fig = plt.figure(figsize=(6, 6))
-            # Adjust grid layout to prevent overlap
-            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2), height_ratios=(1.2, 4),
-                                  left=0.15, right=0.9, bottom=0.15, top=0.9,
-                                  wspace=0.09, hspace=0.09)  # Reduced spacing
+            # adjust grid layout to prevent overlap
+            gs = fig.add_gridspec(2, 2, width_ratios=(4, 1.2),
+                                  height_ratios=(1.2, 4),
+                                  left=0.15, right=0.9, bottom=0.15,
+                                  top=0.9, wspace=0.09, hspace=0.09)
             # create subplots
-            ax = fig.add_subplot(gs[1, 0])  # Main scatter plot
-            ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)  # Top histogram
-            ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)  # Right histogram
+            ax = fig.add_subplot(gs[1, 0])
+            ax_histx = fig.add_subplot(gs[0, 0], sharex=ax)
+            ax_histy = fig.add_subplot(gs[1, 1], sharey=ax)
             # configure scales and ticks
             ax_histx.set_yscale('log')
             ax_histy.set_xscale('log')
             ax.minorticks_on()
             # tick parameters for main plot
             ax.tick_params(axis='both', length=2, direction='in', which='both',
-                           pad=5, right=True, top=True)  # Added pad
+                           pad=5, right=True, top=True)
             # tick parameters for top histogram (x-axis)
             ax_histx.tick_params(axis='x', direction='in', which='both',
                                  labelbottom=False, bottom=True)
@@ -379,7 +387,8 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
                 if sort:
                     pos_, c, a, c_unique = sort_positions(positions[i], timestep,
                                                           axes, colors)
-                    ax.scatter(pos_[:, ax1], pos_[:, ax2], s=0.4, color=c, alpha=a)
+                    ax.scatter(pos_[:, ax1], pos_[:, ax2],
+                               s=0.4, color=c, alpha=a)
                     tags = pos_[:, 3].astype(int)
                     unique_tags = np.sort(np.unique(tags))
                     # loop through each tag and plot histogram
@@ -399,17 +408,20 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
                     ax_histx.hist(pos[:, ax1], bins='auto', color=colors[i],
                                   histtype='step', lw=1, density=True)
                     # right histogram (y-axis)
-                    ax_histy.hist(pos[:, ax2], bins='auto', orientation='horizontal',
-                                  color=colors[i], histtype='step', lw=1, density=True)
+                    ax_histy.hist(pos[:, ax2], bins='auto',
+                                  orientation='horizontal',
+                                  color=colors[i], histtype='step',
+                                  lw=1, density=True)
             # set axis limits
             ax.set_xlim(-scale, scale)
             ax.set_ylim(-scale, scale)
             # set labels
             ax.set_xlabel(labels[ax1], labelpad=10, size=16)
             ax.set_ylabel(labels[ax2], labelpad=10, size=16)
-            # For dynamic axis labels with LaTeX
-            ax_histx.set_ylabel(rf'log[N$_{{{labels[ax1]}}}$]', labelpad=10, size=13)
-            ax_histy.set_xlabel(rf'log[N$_{{{labels[ax2]}}}$]', labelpad=10, size=13)
+            ax_histx.set_ylabel(rf'log[N$_{{{labels[ax1]}}}$]',
+                                labelpad=10, size=13)
+            ax_histy.set_xlabel(rf'log[N$_{{{labels[ax2]}}}$]',
+                                labelpad=10, size=13)
             plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
             # if savefig is True, save figure to directory
             if savefig:
@@ -417,8 +429,9 @@ def plot_density_histogram(positions, timestep, axes, sort=False, scale=100,
 
             plt.show()
 
-def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50, user_colors=None,
-                 snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
+def plot_grid3x3(positions, timesteps, axes, sort=False,
+                 scale=50, user_colors=None, snapshot_save_rate=10,
+                 savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 3x3 grid plot of 9 simulation timesteps
     Parameters
@@ -440,9 +453,9 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50, user_colors=N
     sort: boolean, optional
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
-        for example: axes = [0,1] and sort=True will sort all particles by their
-        z height (dimension 2) and plot particles with the smallest z height
-        first, ensuring particles that are 'higher' are shown on top
+        for example: axes = [0,1] and sort=True will sort all particles by
+        their z height (dimension 2) and plot particles with the smallest z
+        height first, ensuring particles that are 'higher' are shown on top
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
@@ -527,7 +540,8 @@ def plot_grid3x3(positions, timesteps, axes, sort=False, scale=50, user_colors=N
                             axs[j][k].scatter(pos_t[:,ax1], pos_t[:,ax2],
                                               s=0.1, color=colors[i])
                         # timestep legend
-                        axs[j][k].text(-scale*0.9, scale*0.9, f't = {timestep_label}',
+                        axs[j][k].text(-scale*0.9, scale*0.9,
+                                       f't = {timestep_label}',
                                        size=10, bbox=dict(boxstyle="round",
                                                           ec=ec,fc=fc,))
                         counter += 1
@@ -611,8 +625,8 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
 
     def project_particles(positions, elev=0, azim=0):
         '''
-        Projects 3D particles onto a 2D plane based on elevation and azimuth angles
-        to mimic Matplotlib's ax.view_init(elev, azim) functionality.
+        Projects 3D particles onto a 2D plane based on elevation and azimuth
+        angles to mimic Matplotlib's ax.view_init(elev, azim) functionality.
 
         Parameters
         ----------
@@ -628,30 +642,31 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
         projected_pos: np.ndarray[np.float64]
             Nx2 array containing the projected particles.
         '''
-        # Convert angles to radians
+        # convert angles to radians
         elev_rad = np.radians(elev)
         azim_rad = np.radians(azim)
 
-        # Define the line-of-sight vector (Mimicking Matplotlib's camera)
+        # define the line-of-sight vector
         v = np.array([
             np.cos(elev_rad) * np.cos(azim_rad),
             np.cos(elev_rad) * np.sin(azim_rad),
             np.sin(elev_rad)
         ])
 
-        # Define the "up" vector (default is +z direction)
-        up = np.array([0.0, 0.0, 1.0])
+        # define z vector
+        z = np.array([0.0, 0.0, 1.0])
 
-        # Create orthonormal basis using Gram-Schmidt
-        u = np.cross(up, v)  # Right vector
-        if np.linalg.norm(u) < 1e-6:  # If u is too small (e.g., looking straight up/down)
-            u = np.array([1.0, 0.0, 0.0])  # Default to x-axis
+        # create orthonormal basis using Gram-Schmidt
+        u = np.cross(z, v)
+        # if looking near parallel to z vector use x vector instead
+        if np.linalg.norm(u) < 1e-6:
+            u = np.array([1.0, 0.0, 0.0])
         u /= np.linalg.norm(u)
 
-        w = np.cross(v, u)  # Up vector
+        w = np.cross(v, u)
         w /= np.linalg.norm(w)
 
-        # Project particles onto the new basis
+        # project particles onto the new basis
         projected_pos = np.column_stack([positions @ u, positions @ w])
 
         return projected_pos
@@ -785,7 +800,10 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
     pos_los = pos_proj[los_mask]
     # obtain component of velocities along line of sight
     v_los = np.dot(vel[los_mask], los_vector)
-    los_label = f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f}, {los_vector[2]:.2f}]"
+    # los_label = f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f}, {los_vector[2]:.2f}]"
+    los_label = (
+    f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f},"
+    f"       {los_vector[2]:.2f}]")
     # create plot
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
@@ -924,9 +942,11 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
             if grayscale:
                 colors = ['k' for k in range(6)]
             if dark_mode:
-                colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
+                colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB',
+                          '#5CCCA1', '#6A5ACD']
             else:
-                colors = ['k', '#483D8B', '#DC267F', '#42A27D', '#6A5ACD', '#91B515']
+                colors = ['k', '#483D8B', '#DC267F', '#42A27D',
+                          '#6A5ACD', '#91B515']
             use_colorbar = len(timesteps) > len(colors)
             # setup figure
             figsize = (7,6) if use_colorbar else (6,6)
@@ -937,8 +957,8 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
             ls = ['-', '--', '-.', ':']
             if use_colorbar:
                 cmap = cm.rainbow if not grayscale else cm.gray
-                norm = mcolors.Normalize(vmin=min(timesteps) * snapshot_save_rate,
-                                         vmax=max(timesteps) * snapshot_save_rate)
+                norm = mcolors.Normalize(vmin=min(timesteps)*snapshot_save_rate,
+                                         vmax=max(timesteps)*snapshot_save_rate)
                 # normalize timesteps
                 color_mapper = cm.ScalarMappable(norm=norm, cmap=cmap)
                 colors = [cmap(norm(t * snapshot_save_rate)) for t in timesteps]
@@ -1065,7 +1085,7 @@ def display_galaxies(positions, timestep, sort=False, scale=100,
 
             plt.show()
 
-# ––––––––––––––––––––––––––––– COMPUTATIONAL ––––––––––––––––––––––––––––––––––––
+# ––––––––––––––––––––––––––––– COMPUTATIONAL ––––––––––––––––––––––––––––––––––
 
 def compute_relative_energy(velocities, potentials):
     '''
@@ -1329,55 +1349,7 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
 
     return positions, velocities
 
-# ––––––––––––––––––––––––––– PLOT PARAMS ––––––––––––––––––––––––––––––––––––––––
-
-# def set_plot_colors(positions, sort, cmap='rainbow_r',
-#                     trim=False, dark_mode=False):
-#     '''
-#     Set plot colors based on plotting parameters
-#     Parameters
-#     ----------
-#     positions: list of np.ndarray[np.float64]
-#         list of TxNx3 arrays of positions, where T is the number
-#         of timesteps, N is the number of particles per galaxy,
-#         and 3 is the number of dimensions
-#     sort: boolean
-#         determines whether or not to concatenate positions into
-#         a single array for sorting
-#     cmap: matplotlib.pyplot cmap, optional
-#         sets the cmap of the plot
-#     trim: boolean, optional
-#         if True, returns a color array with len(positions)
-#     dark_mode: boolean, optional
-#         if True, uses a color palette tuned to the matplotlib
-#         dark_background style
-#     Returns
-#     -------
-#     positions:
-#         original positions array. if sort=True, the positions array
-#         is concatenated along axis=1
-#         ex: positions = [ ar1, ar2], sort=True
-#         ar1.shape: TxNx3
-#         ar2.shape: TxMx3
-#         returned positions shape: Tx(N+M)x3
-#     colors: array like
-#         list of colors for the plot
-#     '''
-#     colors = ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-#     if dark_mode:
-#         colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
-#     # if sort, tag each particle in positions list
-#     # then concatenate into single array
-#     if sort:
-#         positions = [np.concatenate(tag_particles(positions), axis=1)]
-#     else:
-#         # if more galaxies than colors, generate new list of colors
-#         if len(positions) > len(colors):
-#             colors = plt.get_cmap(cmap)(np.linspace(0, 1, len(positions)))
-#     if trim:
-#         colors = np.array(colors[:len(positions)])
-
-#     return positions, colors
+# ––––––––––––––––––––––––––– PLOT PARAMS ––––––––––––––––––––––––––––––––––––––
 
 def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                     cmap_dict=None, cmap='rainbow_r', dark_mode=False):
@@ -1429,8 +1401,13 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
         list of matplotlib cmaps for the plot
     '''
     # default color list
-    colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD'] \
-             if dark_mode else ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+    # colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD'] \
+    #          if dark_mode else ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
+    colors = (
+        ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
+        if dark_mode else
+        ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD', 'k']
+    )
     # default cmap list
     cmaps = ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
              'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
@@ -1458,11 +1435,20 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
             colors = user_colors
         else:
             # if enough default colors to plot all galaxies
-            if (N_galaxies <= len(colors)):
-                print('WARNING: not enough user specified colors\n',
-                      f'number of user colors: {len(user_colors)}\n',
-                      f'number of colors needed: {N_colors_needed}\n',
-                      f'defaulting to MSG_Nbody colors list: {colors[:N_colors_needed]}')
+            # if (N_galaxies <= len(colors)):
+            #     print('WARN: not enough user specified colors\n',
+            #           f'number of user colors: {len(user_colors)}\n',
+            #           f'number of colors needed: {N_colors_needed}\n',
+            #           'defaulting to MSG_Nbody colors list: ',
+            #           f'{colors[:N_colors_needed]}')
+            if N_galaxies <= len(colors):
+                print(
+                    'WARNING: not enough user specified colors\n',
+                    f'number of user colors: {len(user_colors)}\n',
+                    f'number of colors needed: {N_colors_needed}\n',
+                    'defaulting to MSG_Nbody colors list: ',
+                    f'{colors[:N_colors_needed]}'
+                )
             # if more galaxies than default colors
             else:
                 print('WARNING: not enough user specified colors\n',

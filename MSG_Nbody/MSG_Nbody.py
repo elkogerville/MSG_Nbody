@@ -81,15 +81,20 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     snapshot_save_rate = 10
     if 'snapshot_save_rate' in kwargs:
         snapshot_save_rate = int(kwargs['snapshot_save_rate'])
+    # simulation loop start index
     start_idx = 1
     if 'start_idx' in kwargs:
         start_idx = int(kwargs['start_idx'])
+    # batch processing block size
     block_size = 3000
     if 'block_size' in kwargs:
         block_size = int(kwargs['block_size'])
     # ensure integer amount of timesteps
     timesteps = int(timesteps)
-    directory = create_output_directory(N)
+    if 'directory' in kwargs and os.path.isdir(kwargs['directory']):
+        directory = kwargs['directory']
+    else:
+        directory = create_output_directory(N)
 
     # compute softening length based on Dehnen et al., 2001
     softening = 0.017 * ( (N/1e5) )**(-0.23)
@@ -99,13 +104,11 @@ def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     positions, velocities, masses, accel, potential = ascontiguousarray(positions,
                                                                         velocities,
                                                                         masses)
-
     # calculate initial accelerations
     accel, potential = compute_accel_potential(positions, masses,
                                                accel, potential,
                                                softening_sq, N,
                                                block_size=block_size)
-
     # save initial conditions if starting from timestep = 0
     sim_snapshot = np.zeros((N, 7))
     if start_idx == 1:
