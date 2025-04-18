@@ -236,7 +236,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
                 save_figure_2_disk(dpi)
             plt.show()
 
-def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
+def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
                 user_cmaps=None, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a hexbin density plot of a timestep
@@ -310,7 +310,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
 
             plt.show()
 
-def plot_density_histogram(positions, timestep, axes, sort=False,
+def plot_density_histogram(positions, timestep, axes, sort=True,
                            scale=100, user_colors=None, savefig=False,
                            dpi=300, dark_mode=False):
     '''
@@ -438,7 +438,7 @@ def plot_density_histogram(positions, timestep, axes, sort=False,
 
             plt.show()
 
-def plot_grid3x3(positions, timesteps, axes, sort=False,
+def plot_grid3x3(positions, timesteps, axes, sort=True,
                  scale=50, user_colors=None, snapshot_save_rate=10,
                  savefig=False, dpi=300, dark_mode=False):
     '''
@@ -565,7 +565,7 @@ def plot_grid3x3(positions, timesteps, axes, sort=False,
             plt.show()
 
 def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
-                  N_subplots=[3,3], sort=False, scale=50,
+                  N_subplots=[3,3], sort=True, scale=50,
                   user_cmaps=None, snapshot_save_rate=10,
                   savefig=False, dpi=300, dark_mode=False):
     '''
@@ -1171,7 +1171,7 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
 
             plt.show()
 
-def display_galaxies(positions, timestep, sort=False, scale=100,
+def display_galaxies(positions, timestep, sort=True, scale=100,
                      user_colors=None, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot the xy and xz projections of a simulation snapshot
