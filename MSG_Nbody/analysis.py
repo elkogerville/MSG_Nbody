@@ -1095,7 +1095,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
             ax[1].set_ylabel(r'V$_{LOS}$', size=16)
             plt.title(los_label, size=14)
             plt.tight_layout()
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
