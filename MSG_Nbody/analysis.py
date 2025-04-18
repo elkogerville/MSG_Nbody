@@ -1641,7 +1641,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                 'WARNING: not enough user specified cmaps\n',
                 f'number of user cmaps: {len(user_cmaps)}\n',
                 f'number of cmaps needed: {N_cmap_dict}\n',
-                f'defaulting to MSG_Nbody cmaps list: {cmaps[:len(positions)]}'
+                f'defaulting to MSG_Nbody cmaps list: {cmaps[:N_cmap_dict]}'
             )
 
     return positions, colors, cmaps
