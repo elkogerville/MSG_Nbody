@@ -1,6 +1,6 @@
 # Merging Simulator for Galaxies [MSG]
 ## MSG_Nbody
-### Parallelized N-body simulation code written in Python and Numba using the particle-particle algorithm for studying galaxy mergers with particles on the order of ~100,000-200,000
+### Parallelized N-body simulation code written in Python and Numba using the particle-particle algorithm for studying galaxy mergers with ~150,000 particles
 
 
 <p align="center">
