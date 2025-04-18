@@ -569,7 +569,11 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                   user_cmaps=None, snapshot_save_rate=10,
                   savefig=False, dpi=300, dark_mode=False):
     '''
+<<<<<<< HEAD
     Plot a grid of hexbin plots to visualize particle positions across
+=======
+    Plot a grid of hexbin plots to visualize particle positions across 
+>>>>>>> 2dd144db296974c37cc7c89760f32c69fc1d7cc0
     multiple snapshots, for any arbitrary number of rows and cols
     Parameters
     ----------
