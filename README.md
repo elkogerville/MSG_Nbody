@@ -218,7 +218,7 @@ gridsize = 300
 plot_hexpanel(positions, axes, gridsize, t, nrows_ncols)
 ```
 
-To plot a single timestep, use the [plot_2D](), [plot_3D](), or [plot_hexbin]() functions.
+To plot a single timestep, use the [plot_2D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L25), [plot_3D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L133), or [plot_hexbin](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L240) functions.
 ```python
 t = 200
 plot_2D(positions, t, [0,1])
