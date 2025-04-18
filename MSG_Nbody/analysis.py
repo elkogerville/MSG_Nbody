@@ -59,8 +59,8 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
         and corresponds to the lowest galaxy_idx in dict (see above). incrementing
         cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
     user_colors: list of str, optional
-            allows user to override default colors/cmaps with a user
-            specified custom list of matplotlib colors/
+        allows user to override default colors with a user
+        specified custom list of matplotlib colors
     user_cmaps: list of str, optional
         allows user to override default cmaps with a user
         specified custom list of matplotlib cmaps
@@ -124,7 +124,7 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
             ax.set_xlabel(ax_labels[ax1], size = 16)
             ax.set_ylabel(ax_labels[ax2], size = 16)
             plt.tight_layout()
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
@@ -168,8 +168,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
         and corresponds to the lowest galaxy_idx in dict (see above).
         incrementing cb_idx by 1 will select the next galaxy_idx in the cmap dict
     user_colors: list of str, optional
-            allows user to override default colors/cmaps with a user
-            specified custom list of matplotlib colors/
+            allows user to override default colors  with a user
+            specified custom list of matplotlib colors
     user_cmaps: list of str, optional
         allows user to override default cmaps with a user
         specified custom list of matplotlib cmaps
@@ -197,6 +197,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
                 ax.set_axis_off()
             if cmap_dict == False:
                 cmap_dict = {}
+            # set plot colors
             pos, colors, cmaps = set_plot_colors(pos, False,
                                                  user_colors=user_colors,
                                                  user_cmaps=user_cmaps,
@@ -230,8 +231,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             ax.zaxis.set_pane_color(border_color)
             # hide gridlines
             ax.grid(False)
-
             plt.tight_layout()
+
             if savefig:
                 save_figure_2_disk(dpi)
             plt.show()
@@ -242,7 +243,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
     Plot a hexbin density plot of a timestep
     Parameters
     ----------
-    list of np.ndarray[np.float64]
+    positions: list of np.ndarray[np.float64]
         list of TxNx3 arrays of positions, where T is the number
         of timesteps, N is the number of particles per galaxy,
         and 3 is the number of dimensions
@@ -263,8 +264,9 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    user_cmaps: list of str
-        list of matplotlib cmaps to use the plot cmaps
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -304,7 +306,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             plt.xlim(-scale, scale)
             plt.ylim(-scale, scale)
             plt.tight_layout()
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
@@ -339,6 +341,9 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
+    user_colors: list of str, optional
+        allows user to override default colors with a user
+        specified custom list of matplotlib colors
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -389,7 +394,6 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
             positions, colors, _ = set_plot_colors(positions, sort,
                                                    user_colors=user_colors,
                                                    dark_mode=dark_mode)
-
             ax1, ax2 = axes
             # loop through each galaxy
             for i in range(len(positions)):
@@ -432,42 +436,55 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
             ax_histy.set_xlabel(rf'log[N$_{{{labels[ax2]}}}$]',
                                 labelpad=10, size=13)
             plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
             plt.show()
 
-def plot_grid3x3(positions, timesteps, axes, sort=True,
-                 scale=50, user_colors=None, snapshot_save_rate=10,
-                 savefig=False, dpi=300, dark_mode=False):
+def plot_panel(positions, axes, gridsize, timesteps='auto',
+               nrows_ncols=[3,3], sort=True, scale=50,
+               user_colors=None, snapshot_save_rate=10,
+               savefig=False, dpi=300, dark_mode=False):
     '''
-    Plot a 3x3 grid plot of 9 simulation timesteps
+    Plot a grid of orthagonal projections to visualize particle positions across
+    multiple snapshots, for any arbitrary number of rows and cols
     Parameters
     ----------
     positions: list of np.ndarray[np.float64]
         list of TxNx3 arrays of positions, where T is the number
         of timesteps, N is the number of particles per galaxy,
         and 3 is the number of dimensions
-    timestep: list of int
-        list of timesteps to plot with length 9. because the simulation only
-        saves a snapshot every 'snapshot_save_rate', the total number of
-        recorded timesteps is timesteps/snapshot_save_rate. thus, a simulation
-        ran for 2000 timesteps with snapshot_save_rate = 10 will only have
-        200 timesteps to plot
     axes: list of int
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
+    gridsize: int
+        number of hexagons in the x-direction. the number of hexagons in the
+        y-direction is chosen such that the hexagons are approximately regular
+    timestep: list of int, optional
+        by default is set to 'auto' and will plot T equally spaced timesteps
+        from 0 to the last timestep, where T is the number of subplots
+        (T = np.prod(N_subplots)). can also be a list of timesteps to plot with
+        length T. because the simulation only saves a snapshot every
+        'snapshot_save_rate', the total number of recorded timesteps is
+        timesteps/snapshot_save_rate. thus, a simulation ran for 2000
+        timesteps with snapshot_save_rate = 10 will only have 200 timesteps to plot
+    nrows_ncols: list of int, optional
+        list of two integers [Nx, Ny] specifying the number of subplots
+        in the horizontal (rows, Nx) and vertical (columns, Ny) directions
     sort: boolean, optional
         if True, will sort the particles by the axes not used for plotting
         to ensure the that dimension is taken into account when plotting.
-        for example: axes = [0,1] and sort=True will sort all particles by
-        their z height (dimension 2) and plot particles with the smallest z
-        height first, ensuring particles that are 'higher' are shown on top
+        for example: axes = [0,1] and sort=True will sort all particles by their
+        z height (dimension 2) and plot particles with the smallest z height
+        first, ensuring particles that are 'higher' are shown on top
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
+    user_colors: list of str, optional
+        allows user to override default colors with a user
+        specified custom list of matplotlib colors
     snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
@@ -482,14 +499,16 @@ def plot_grid3x3(positions, timesteps, axes, sort=True,
     '''
     # error handling
     axes = error_handling_axes(axes)
-    if len(timesteps) != 9:
-        error = ('timesteps should be a list of length 9 \n'
-                'ex: plot first 9 snapshots: [0,1,2,3,4,5,6,7,8]')
-        raise ValueError(error)
+    if timesteps == 'auto':
+        t_last = positions[0].shape[0]-1
+        timesteps = np.linspace(0, t_last, np.prod(nrows_ncols))
     timesteps = [int(t) for t in timesteps]
+    # set plot params
     labels = ['X', 'Y', 'Z']
-    # plot grid
-    # ---------
+    ax1, ax2 = axes
+    Nx, Ny = nrows_ncols
+    subplot_size = 3.5
+    figsize = (Ny*subplot_size, Nx*subplot_size)
     style = 'dark_background' if dark_mode else 'default'
     ec = (0, 0, 0) if dark_mode else (1, 1, 1)
     fc = (0, 0, 0) if dark_mode else (1, 1, 1)
@@ -499,73 +518,85 @@ def plot_grid3x3(positions, timesteps, axes, sort=True,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            fig = plt.figure(figsize = (10,10))
-            # define 3x3 grid of subplots
-            gs = fig.add_gridspec(3, 3, hspace = 0, wspace = 0)
+            # create panel grid
+            fig = plt.figure(figsize=figsize)
+            gs = fig.add_gridspec(Nx, Ny, hspace = 0, wspace = 0)
             (axs) = gs.subplots(sharex=True, sharey=True)
-            # store params for each plot
-            labeltop = [[True,True,True], [False,False,False],
-                        [False,False,False]]
-            labelright = [[False,False,True], [False,False,True],
-                          [False,False,True]]
+
+            # compute tick labels for each plot
+            labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
+            labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
+
             # generate each subplot
             counter = 0
-            for i, a in enumerate(axs):
-                for j in range(3):
-                    a[j].minorticks_on()
-                    a[j].tick_params(axis='both', length=1.7, direction='in',
+            for i in range(Nx):
+                for j in range(Ny):
+                    ax = get_ax(i, j, axs, Nx, Ny)
+                    ax.minorticks_on()
+                    ax.tick_params(axis='both', length=2, direction='in',
                                      which='both', labeltop=labeltop[i][j],
                                      labelright=labelright[i][j],
                                      right=True, top=True)
-                    a[j].xaxis.set_major_locator(ticker.MaxNLocator(3))
-                    a[j].yaxis.set_major_locator(ticker.MaxNLocator(3))
+                    ax.xaxis.set_major_locator(ticker.MaxNLocator(3))
+                    ax.yaxis.set_major_locator(ticker.MaxNLocator(3))
+                    ax.set_box_aspect(1)
                     counter += 1
+
             # set plot colors
             positions, colors, _ = set_plot_colors(positions, sort,
                                                    user_colors=user_colors,
                                                    dark_mode=dark_mode)
-            ax1, ax2 = axes
-            axs[0][1].set_xlim(-scale, scale)
-            axs[0][1].set_ylim(-scale, scale)
-            # # loop through each galaxy
+            # set limits
+            ax = get_ax(0, 0, axs, Nx, Ny)
+            ax.set_xlim(-scale, scale)
+            ax.set_ylim(-scale, scale)
+            fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, wspace=0, hspace=0)
+            # set axes labels
+            leftx = 0 if Nx == 1 else 0.1
+            lefty = 0 if Ny == 1 else 0.1
+            padx = leftx - 0.005*10**-1 * max(Nx, Ny)
+            pady = lefty - 0.005*10**-1 * max(Nx, Ny)
+            fig.text(0.5, padx/2, labels[ax1],
+                        ha='center', va='bottom', fontsize=16)
+            fig.text(pady/2, 0.5, labels[ax2],  # y-label
+                        ha='center', va='center', rotation='vertical', fontsize=16)
+
+            # loop through each galaxy
             for i in range(len(positions)):
                 counter = 0
                 pos = positions[i]
                 # loop through each plot
-                for j in range(3):
+                for j in range(Nx):
                     # loop through each subplot
-                    for k in range(3):
+                    for k in range(Ny):
                         timestep_label = timesteps[counter]*snapshot_save_rate
                         timestep = timesteps[counter]
-                        # if True, sort particles by height
+                        ax = get_ax(j, k, axs, Nx, Ny)
                         if sort:
                             pos_, c, a, _ = sort_positions(pos, timestep,
                                                            axes, colors)
-                            axs[j][k].scatter(pos_[:,ax1], pos_[:,ax2],
-                                              s=0.1, color=c, alpha=a)
+                            ax.scatter(pos_[:,ax1], pos_[:,ax2],
+                                       s=0.1, color=c, alpha=a)
                         # default grid plot
                         else:
                             pos_t = pos[timestep]
-                            axs[j][k].scatter(pos_t[:,ax1], pos_t[:,ax2],
-                                              s=0.1, color=colors[i])
+                            ax.scatter(pos_t[:,ax1], pos_t[:,ax2],
+                                       s=0.1, color=colors[i])
+
                         # timestep legend
-                        axs[j][k].text(-scale*0.9, scale*0.9,
-                                       f't = {timestep_label}',
-                                       size=10, bbox=dict(boxstyle="round",
-                                                          ec=ec,fc=fc,))
+                        ax.text(-scale*0.85, scale*0.85,
+                                f't = {timestep_label}',
+                                size=10, bbox=dict(boxstyle="round",
+                                                   ec=ec,fc=fc,))
                         counter += 1
 
-            axs[2][1].set_xlabel(labels[ax1], size = 16)
-            axs[1][0].set_ylabel(labels[ax2], size = 16)
-            plt.tight_layout()
-            # if savefig is True, save figure to directory
             if savefig:
                 save_figure_2_disk(dpi)
 
             plt.show()
 
 def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
-                  N_subplots=[3,3], sort=True, scale=50,
+                  nrows_ncols=[3,3], sort=True, scale=50,
                   user_cmaps=None, snapshot_save_rate=10,
                   savefig=False, dpi=300, dark_mode=False):
     '''
@@ -592,7 +623,7 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
         'snapshot_save_rate', the total number of recorded timesteps is
         timesteps/snapshot_save_rate. thus, a simulation ran for 2000
         timesteps with snapshot_save_rate = 10 will only have 200 timesteps to plot
-    N_subplots: list of int
+    nrows_ncols: list of int, optional
         list of two integers [Nx, Ny] specifying the number of subplots
         in the horizontal (rows, Nx) and vertical (columns, Ny) directions
     sort: boolean, optional
@@ -600,8 +631,9 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
-    user_cmaps: list of str
-        list of matplotlib cmaps to use the plot cmaps
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
     snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
@@ -614,49 +646,24 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
     '''
-    def get_ax(i, j, axs, Nx, Ny):
-        '''
-        Dynamically sets the axes object based on the number of panels
-        Parameters
-        ----------
-        i,j: int
-            index of row and column of panel plot
-        axs: matplotlib axes object
-            axes object defined by gs.subplots
-        Nx,Ny: int
-            number of rows and columns in panel plot
-        Returns
-        -------
-            correctly indexed axs object
-        '''
-        if Nx == 1 and Ny == 1:
-            return axs
-        elif Nx == 1:
-            return axs[j]
-        elif Ny == 1:
-            return axs[i]
-        else:
-            return axs[i][j]
     # error handling
     axes = error_handling_axes(axes)
     if timesteps == 'auto':
         t_last = positions[0].shape[0]-1
-        timesteps = np.linspace(0, t_last, np.prod(N_subplots))
+        timesteps = np.linspace(0, t_last, np.prod(nrows_ncols))
     else:
-        if len(timesteps) != np.prod(N_subplots):
-            error = (f'timesteps should be a list of length {np.prod(N_subplots)} \n')
+        if len(timesteps) != np.prod(nrows_ncols):
+            error = (f'timesteps should be a list of length {np.prod(nrows_ncols)} \n')
             raise ValueError(error)
     timesteps = [int(t) for t in timesteps]
-    N_subplots = [int(n) for n in N_subplots]
-
+    nrows_ncols = [int(n) for n in nrows_ncols]
+    # set plot params
     labels = ['X', 'Y', 'Z']
     extent = [-scale, scale, -scale, scale]
     ax1, ax2 = axes
-    Nx, Ny = N_subplots
+    Nx, Ny = nrows_ncols
     subplot_size = 3.5
     figsize = (Ny*subplot_size, Nx*subplot_size)
-    # plot grid
-    # ---------
     style = 'dark_background' if dark_mode else 'default'
     ec = (0, 0, 0) if dark_mode else (1, 1, 1)
     fc = (0, 0, 0) if dark_mode else (1, 1, 1)
@@ -666,12 +673,12 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
+            # create panel grid
             fig = plt.figure(figsize=figsize)
-            # define 3x3 grid of subplots
             gs = fig.add_gridspec(Nx, Ny, hspace = 0, wspace = 0)
             (axs) = gs.subplots(sharex=True, sharey=True)
 
-            # store params for each plot
+            # compute tick labels for each plot
             labeltop = [[True if i == 0 else False for j in range(Ny)] for i in range(Nx)]
             labelright = [[True if i == Ny-1 else False for i in range(Ny)] for j in range(Nx)]
 
@@ -689,6 +696,7 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                     ax.yaxis.set_major_locator(ticker.MaxNLocator(3))
                     ax.set_box_aspect(1)
                     counter += 1
+
             fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
             fig.text(0.5, 0.06, labels[ax1], ha='center', va='center', fontsize=16)
             fig.text(0.06, 0.5, labels[ax2], ha='center', va='center', rotation='vertical', fontsize=16)
@@ -696,10 +704,22 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
             positions, _, cmaps = set_plot_colors(positions, False,
                                                   user_cmaps=user_cmaps,
                                                   dark_mode=dark_mode)
+            # number of cmaps
             N = 1 if sort else len(cmaps)
+            # set limits
             ax = get_ax(0, 0, axs, Nx, Ny)
             ax.set_xlim(-scale, scale)
             ax.set_ylim(-scale, scale)
+            fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, wspace=0, hspace=0)
+            # set axes labels
+            leftx = 0 if Nx == 1 else 0.1
+            lefty = 0 if Ny == 1 else 0.1
+            padx = leftx - 0.005*10**-1 * max(Nx, Ny)
+            pady = lefty - 0.005*10**-1 * max(Nx, Ny)
+            fig.text(0.5, padx/2, labels[ax1],
+                        ha='center', va='bottom', fontsize=16)
+            fig.text(pady/2, 0.5, labels[ax2],  # y-label
+                        ha='center', va='center', rotation='vertical', fontsize=16)
 
             if sort:
                 positions = [np.concatenate(positions, axis=1)]
@@ -722,11 +742,35 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                                 size=10, bbox=dict(boxstyle="round",
                                                    ec=ec,fc=fc,))
                         counter += 1
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
             plt.show()
+
+def get_ax(i, j, axs, Nx, Ny):
+    '''
+    Dynamically sets the axes object based on the number of panels
+    Parameters
+    ----------
+    i,j: int
+        index of row and column of panel plot
+    axs: matplotlib axes object
+        axes object defined by gs.subplots
+    Nx,Ny: int
+        number of rows and columns in panel plot
+    Returns
+    -------
+        correctly indexed axs object
+    '''
+    if Nx == 1 and Ny == 1:
+        return axs
+    elif Nx == 1:
+        return axs[j]
+    elif Ny == 1:
+        return axs[i]
+    else:
+        return axs[i][j]
 
 def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
              b_shift=0, transpose=False, snapshot_save_rate=10,
@@ -773,6 +817,8 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
         saves the figure to the working directory if True
     dpi: int, optional
         dpi of saved figure
+    dark_mode: boolean, optional
+        if True, uses matplotlib dark_background style
     '''
     def los_to_angles(los_vector):
         '''
@@ -1112,14 +1158,19 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
             'mathtext.default': 'regular'
         }):
             # Define colors
-            if grayscale:
-                colors = ['k' for k in range(6)]
             if dark_mode:
-                colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB',
-                          '#5CCCA1', '#6A5ACD']
+                if grayscale:
+                    colors = ['w' for w in range(6)]
+                else:
+                    colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB',
+                              '#5CCCA1', '#6A5ACD']
             else:
-                colors = ['k', '#483D8B', '#DC267F', '#42A27D',
-                          '#6A5ACD', '#91B515']
+                if grayscale:
+                    colors = ['k' for k in range(6)]
+                else:
+                    colors = ['k', '#483D8B', '#DC267F', '#42A27D',
+                              '#6A5ACD', '#91B515']
+
             use_colorbar = len(timesteps) > len(colors)
             # setup figure
             figsize = (7,6) if use_colorbar else (6,6)
@@ -1165,7 +1216,7 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
                 cbar = fig.colorbar(color_mapper, ax = ax)
                 cbar.set_label("Timesteps", size = 13, rotation=270, labelpad=15)
             plt.tight_layout()
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
@@ -1197,6 +1248,9 @@ def display_galaxies(positions, timestep, sort=True, scale=100,
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
+    user_colors: list of str, optional
+        allows user to override default colors with a user
+        specified custom list of matplotlib colors
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -1252,7 +1306,7 @@ def display_galaxies(positions, timestep, sort=True, scale=100,
                     ax[1].scatter(galaxy[timestep,:,0], galaxy[timestep,:,2],
                                   s=0.05, color=colors[i], alpha=0.9)
             plt.tight_layout()
-            # if savefig is True, save figure to directory
+
             if savefig:
                 save_figure_2_disk(dpi)
 
