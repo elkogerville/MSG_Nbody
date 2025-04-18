@@ -563,7 +563,6 @@ def plot_grid3x3(positions, timesteps, axes, sort=False,
 
             plt.show()
 
-
 def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                   N_subplots=[3,3], sort=False, scale=50,
                   user_cmaps=None, snapshot_save_rate=10,
@@ -615,6 +614,20 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
         if True, uses matplotlib dark_background style
     '''
     def get_ax(i, j, axs, Nx, Ny):
+        '''
+        Dynamically sets the axes object based on the number of panels
+        Parameters
+        ----------
+        i,j: int
+            index of row and column of panel plot
+        axs: matplotlib axes object
+            axes object defined by gs.subplots
+        Nx,Ny: int
+            number of rows and columns in panel plot
+        Returns
+        -------
+            correctly indexed axs object
+        '''
         if Nx == 1 and Ny == 1:
             return axs
         elif Nx == 1:
