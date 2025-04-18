@@ -195,8 +195,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             ax.view_init(elev=elev, azim=azim, roll=roll)
             if axes_off:
                 ax.set_axis_off()
-            if cmap == False:
-                cmap = {}
+            if cmap_dict == False:
+                cmap_dict = {}
             pos, colors, cmaps = set_plot_colors(pos, False,
                                                  user_colors=user_colors,
                                                  user_cmaps=user_cmaps,
@@ -204,10 +204,10 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             counter = 0
             for i, galaxy in enumerate(pos):
                 gal = galaxy[t]
-                colors_i = cmap.get(i, None)
+                colors_i = cmap_dict.get(i, None)
                 if colors_i is not None:
                     im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.2,
-                                      c=cmap[i], cmap=cmaps[counter%len(pos)])
+                                      c=cmap_dict[i], cmap=cmaps[counter%len(pos)])
                     if counter == cb_idx and plot_cb:
                         cbar = fig.colorbar(im, ax=ax, shrink=0.5)
                         cbar.ax.set_ylabel(r'$V_{X}$', size=16)
