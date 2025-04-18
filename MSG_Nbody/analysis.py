@@ -1574,16 +1574,14 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
         list of matplotlib cmaps for the plot
     '''
     # default color list
-    # colors = ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD'] \
-    #          if dark_mode else ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD','k']
-    YlGnBu_r = plt.get_cmap('YlGnBu_r')
-    YlGnBu_r = ListedColormap(YlGnBu_r(np.linspace(0.2, 1, 256)))
     colors = (
         ['w', '#DC267F', '#7b68ee', '#F1A0FB', '#5CCCA1', '#6A5ACD']
         if dark_mode else
         ['#483D8B', '#DC267F', '#F1A0FB', '#5CCCA1', '#6A5ACD', 'k']
     )
     # default cmap list
+    YlGnBu_r = plt.get_cmap('YlGnBu_r')
+    YlGnBu_r = ListedColormap(YlGnBu_r(np.linspace(0.2, 1, 256)))
     cmaps = (
         ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
         'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
@@ -1614,12 +1612,6 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
             colors = user_colors
         else:
             # if enough default colors to plot all galaxies
-            # if (N_galaxies <= len(colors)):
-            #     print('WARN: not enough user specified colors\n',
-            #           f'number of user colors: {len(user_colors)}\n',
-            #           f'number of colors needed: {N_colors_needed}\n',
-            #           'defaulting to MSG_Nbody colors list: ',
-            #           f'{colors[:N_colors_needed]}')
             if N_galaxies <= len(colors):
                 print(
                     'WARNING: not enough user specified colors\n',
@@ -1630,10 +1622,12 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                 )
             # if more galaxies than default colors
             else:
-                print('WARNING: not enough user specified colors\n',
-                      f'number of user colors: {len(user_colors)}\n',
-                      f'number of colors needed: {N_colors_needed}\n',
-                      f'defaulting to drawing color sequence from cmap {cmap}')
+                print(
+                    'WARNING: not enough user specified colors\n',
+                    f'number of user colors: {len(user_colors)}\n',
+                    f'number of colors needed: {N_colors_needed}\n',
+                    f'defaulting to drawing color sequence from cmap {cmap}'
+                )
     # if more galaxies than default colors
     if N_galaxies > len(colors):
         colors = plt.get_cmap(cmap)(np.linspace(0, 1, N_galaxies))
@@ -1643,10 +1637,12 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
         if (len(user_cmaps) >= N_cmap_dict):
             cmaps = user_cmaps
         else:
-            print('WARNING: not enough user specified cmaps\n',
-                  f'number of user cmaps: {len(user_cmaps)}\n',
-                  f'number of cmaps needed: {N_cmap_dict}\n',
-                  f'defaulting to MSG_Nbody cmaps list: {cmaps[:len(positions)]}')
+            print(
+                'WARNING: not enough user specified cmaps\n',
+                f'number of user cmaps: {len(user_cmaps)}\n',
+                f'number of cmaps needed: {N_cmap_dict}\n',
+                f'defaulting to MSG_Nbody cmaps list: {cmaps[:len(positions)]}'
+            )
 
     return positions, colors, cmaps
 
