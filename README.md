@@ -27,6 +27,13 @@ $ pip install MSG_Nbody
 ## Uses
 The MSG_Nbody Python package offers an efficient, fully vectorized and parallelized 3D NumPy implementation of the particle-particle N-body simulation algorithm. The simulation integrates the motion of stellar particles under their combined gravitational attraction in discretized timesteps. The acceleration computation is batch processed and compiled with Numba for fast calculation times. On a reasonably powerful personal computer, the code can support up to ~100,000 - 200,000 particles with runtimes on the order of a couple of days. Lowering the number of particles (N<60,000) will yield computation times from a couple minutes to a couple of hours. This package aims to provide an accessible N-body simulation code in Python that is simple to set up and modify yet still simulates the effects of gravity with reasonable accuracy. Additionally, initial conditions for different galaxy models in equilibrium are provided, including a spherical Hernquist galaxy and a simple disk galaxy. The algorithm for generating spherical galaxy initial conditions of different masses and scale lengths is also provided for further customizations, however, any set of initial conditions can be used as inputs to the simulation code. The package also comes with a fully integrated Python plotting library to analyze simulation snapshots.
 
+<figure>
+  <img src="ANIMATIONS/ NGC1316_hexgrid_2x3dark.png" width="1000" align = 'center'>
+</figure>
+
+<div align="center">
+10:1 merger with 130,000 particles plotted with the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L544">plot_hexgrid</a> function.
+</div>
 
 ## Documentation and How to Use
 For an in-depth overview of how to use MSG_Nbody, please see the [MSG_Nbody Documentation Notebook](DOCUMENTATION/MSG_Nbody_Documentation.ipynb), which demonstrates how to set up and run an N-body simulation between two colliding disk galaxies with 6,000 total particles. In the [Tests](Tests) folder, there are numerous programs for the user to try, including initial condition generation scripts, N-body merger simulation programs, and simulation animation scripts. The N-body simulation code is flexible, however, and can take any set of initial conditions in the form of NumPy arrays as inputs. The code below demonstrates how easy a simple 1:1 merger between two Hernquist spherical galaxies is to run.
