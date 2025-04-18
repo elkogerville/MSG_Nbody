@@ -223,10 +223,11 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             ax.set_ylim(-scale, scale)
             ax.set_zlim(-scale, scale)
 
-            # set border color to white
-            ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-            ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-            ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+            # set border color
+            border_color = (1.0, 1.0, 1.0, 1.0) if dark_mode else (0, 0, 0, 0)
+            ax.xaxis.set_pane_color(border_color)
+            ax.yaxis.set_pane_color(border_color)
+            ax.zaxis.set_pane_color(border_color)
             # hide gridlines
             ax.grid(False)
 
