@@ -294,6 +294,8 @@ def plot_hexbin(positions, t, axes, gridsize, sort=False, scale=100,
 
             plt.xlabel(labels[ax1], size=16)
             plt.ylabel(labels[ax2], size=16)
+            plt.xlim(-scale, scale)
+            plt.ylim(-scale, scale)
             plt.tight_layout()
             # if savefig is True, save figure to directory
             if savefig:
