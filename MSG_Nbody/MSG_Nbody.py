@@ -17,7 +17,7 @@ from .simulation_setup import ascontiguousarray
 from .acceleration_potential import compute_accel_potential
 from .input_output import save_snapshot_2_binary_file, create_output_directory
 
-def MSG_nbody(positions, velocities, masses, dt, timesteps, **kwargs):
+def MSG_Nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     '''
     runs an N-body simulation to model the dynamics of a system of particles
     under mutual gravitational attraction. the function integrates the equations
