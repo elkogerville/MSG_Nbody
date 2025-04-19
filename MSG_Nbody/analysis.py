@@ -295,6 +295,8 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
                                                   user_cmaps=user_cmaps,
                                                   dark_mode=dark_mode)
             N = 1 if sort else len(cmaps)
+            if sort:
+                positions = [np.concatenate(positions, axis=1)]
             counter = 0
             for i, pos in enumerate(positions):
                 plt.hexbin(pos[t,:,ax1], pos[t,:,ax2], gridsize=gridsize,
