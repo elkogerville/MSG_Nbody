@@ -1017,8 +1017,8 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
     v_los = np.dot(vel[los_mask], los_vector)
     # los_label = f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f}, {los_vector[2]:.2f}]"
     los_label = (
-    f"LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f},"
-    f"       {los_vector[2]:.2f}]")
+    f'LOS: [{los_vector[0]:.2f}, {los_vector[1]:.2f},'
+    f' {los_vector[2]:.2f}]')
     # create plot
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
