@@ -188,7 +188,7 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
         pos_com.append(com)
         vel_com.append(com_v)
         gal_mass.append(total_mass)
-
+    N = len(pos_com)
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
         with plt.rc_context({
@@ -207,17 +207,18 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
             ax[0].set_ylabel(r'Y', size=17)
             ax[1].set_ylabel(r'Z', size=17)
             # initialize nbody arrays
-            pos_com, vel_com, gal_mass, accel, _ = ascontiguousarray(np.asarray(pos_com),
+            pos_com, vel_com, gal_mass, accel, p = ascontiguousarray(np.asarray(pos_com),
                                                                      vel_com, gal_mass)
             softening_sq = 0.1**2
             N = pos_com.shape[0]
             # compute initial acceleration
             accel, potential = compute_accel_potential(pos_com, gal_mass, accel,
-                                                       _, softening_sq, N)
+                                                       p, softening_sq, N)
             # set plot colors
-            pos_com, colors = set_plot_colors(pos_com, False,
-                                              cmap='rainbow_r',
-                                              dark_mode=dark_mode)
+            pos_com, colors, _ = set_plot_colors(pos_com, False,
+                                                 cmap='rainbow_r',
+                                                 dark_mode=dark_mode)
+            colors = colors[:N]
             # nbody simulation loop
             for i in tqdm(range(timesteps)):
                 # 1/2 kick
@@ -228,7 +229,7 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
 
                 # update accelerations
                 accel, potential = compute_accel_potential(pos_com, gal_mass,
-                                                           accel, _,
+                                                           accel, p,
                                                            softening_sq, N)
                 # update velocities
                 vel_com += accel * dt/2.0
