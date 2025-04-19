@@ -217,7 +217,6 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
             # set plot colors
             pos_com, colors = set_plot_colors(pos_com, False,
                                               cmap='rainbow_r',
-                                              trim=True,
                                               dark_mode=dark_mode)
             # nbody simulation loop
             for i in tqdm(range(timesteps)):
