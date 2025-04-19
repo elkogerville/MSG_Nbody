@@ -1100,7 +1100,7 @@ def plot_PVD(pos, vel, timestep, line_of_sight, width, m_shift=1,
 
             plt.show()
 
-def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
+def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35, abs_val=False,
             plot_hernquist=False, grayscale=False, snapshot_save_rate=10,
             savefig=False, dpi=300, dark_mode=False):
     '''
@@ -1119,6 +1119,8 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
     bin_min, bin_max : float, optional
         the minimum and maximum values for the logarithmic binning
         defined as min=10**(bin_min) and max=10**(bin_max)
+    abs_val: boolean, optional
+        if True, takes absolute value of Energy distribution
     plot_hernquist: boolean, optional
         if True, will plot the analytical N(E) curve of a hernquist galaxy,
         using the 'compute_hernquist_Ne' method. will promt the user to input:
@@ -1194,12 +1196,18 @@ def plot_Ne(energy, timesteps, bin_min=-3, bin_max=0.35,
             for i, (t, color) in enumerate(zip(timesteps, colors)):
                 label = None if use_colorbar else f't = {t * snapshot_save_rate}'
                 bins = np.logspace(bin_min, bin_max, 65)
-                hist, edges = np.histogram(energy[t], bins=bins)
+                energy_t = np.abs(energy[t]) if abs_val else energy[t].copy()
+                energy_t[energy_t == 0] = 1e-10
+
+                hist, edges = np.histogram(energy_t, bins=bins)
                 center = (edges[1:] + edges[:-1]) / 2
                 ax.step(center, hist / np.max(hist), color=color,
                         lw=0.6, label=label, ls=ls[i%len(ls)])
             # labels and scales
-            ax.set_xlabel('E', size=16)
+            if abs_val:
+                ax.set_xlabel('|E|', size=16)
+            else:
+                ax.set_xlabel('E', size=16)
             ax.set_ylabel('N(E)', size=16)
             ax.set_yscale('log')
             ax.set_xscale('log')
