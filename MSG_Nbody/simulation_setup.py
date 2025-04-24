@@ -321,7 +321,7 @@ def concatenate_initial_conditions(pos_list, vel_list,
 
     print(
         f'positions shape: {positions.shape}, velocities shape: {velocities.shape}, '
-        f'masses shape: {masses.shape} total simulation mass: {np.sum(masses)}'
+        f'masses shape: {masses.shape} total simulation mass: {np.sum(masses):.3}'
         )
     if save_2_disk == True:
         N = positions.shape[0]
