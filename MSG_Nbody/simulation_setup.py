@@ -183,7 +183,7 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
     timesteps = int(timesteps)
     # determine initial conditions from COM
     # loop through each galaxy and compute COM
-    pos_com, vel_com, gal_mass = [], [], []
+    pos_com, gal_mass = [], []
     for (pos, mass) in zip(positions, masses):
         total_mass = np.sum(mass)
         com = np.sum(pos*mass, axis=0)/total_mass
@@ -209,8 +209,8 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
             ax[0].set_ylabel(r'Y', size=17)
             ax[1].set_ylabel(r'Z', size=17)
             # initialize nbody arrays
-            pos_com, vel_com, gal_mass, accel, p = ascontiguousarray(np.asarray(pos_com),
-                                                                     vel_com, gal_mass)
+            pos_com, vels, gal_mass, accel, p = ascontiguousarray(np.asarray(pos_com),
+                                                                  initial_vels, gal_mass)
             softening_sq = 0.1**2
             N = pos_com.shape[0]
             # compute initial acceleration
@@ -230,17 +230,17 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
             # nbody simulation loop
             for i in tqdm(range(timesteps)):
                 # 1/2 kick
-                vel_com += accel * dt/2.0
+                vels += accel * dt/2.0
 
                 # drift
-                pos_com += vel_com * dt
+                pos_com += vels * dt
 
                 # update accelerations
                 accel, potential = compute_accel_potential(pos_com, gal_mass,
                                                            accel, p,
                                                            softening_sq, N)
                 # update velocities
-                vel_com += accel * dt/2.0
+                vels += accel * dt/2.0
                 # overplot timestep
                 ax[0].scatter(pos_com[:,0], pos_com[:,1], s=0.1, c=colors)
                 ax[1].scatter(pos_com[:,0], pos_com[:,2], s=0.1, c=colors)
