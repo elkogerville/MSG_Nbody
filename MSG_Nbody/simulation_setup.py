@@ -246,9 +246,9 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
                 ax[1].scatter(pos_com[:,0], pos_com[:,2], s=0.1, c=colors)
             # plot last timestep markers
             ax[0].scatter(pos_com[:,0], pos_com[:,1], s=120, c=colors,
-                          marker='*', edgecolors=colors[::-1])
+                          marker='*', edgecolors='skyblue')
             ax[1].scatter(pos_com[:,0], pos_com[:,2], s=120, c=colors,
-                          marker='*', edgecolors=colors[::-1])
+                          marker='*', edgecolors='skyblue')
             # plot each galaxy initial conditions if true
             if plot_glxys:
                 for i, pos in enumerate(positions):
