@@ -132,7 +132,8 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
 
 def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             plot_cb=False, cb_idx=0, user_colors=None, user_cmaps=None,
-            axes_off=False, savefig=False, dpi=300, dark_mode=False):
+            axes_off=False, savefig=False, dpi=300, dark_mode=False,
+            figsize=(10,10)):
     '''
     Plot a 2D projection of a simulation snapshot
     Parameters
@@ -181,6 +182,9 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
+    figsize: tuple of float, optional
+        width and height of figure in inches (width, height)
+        by default is (10,10)
         '''
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
@@ -189,7 +193,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            fig = plt.figure(figsize = (10, 10))
+            fig = plt.figure(figsize=figsize)
 
             ax = plt.axes(projection='3d')
             ax.view_init(elev=elev, azim=azim, roll=roll)
@@ -238,7 +242,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             plt.show()
 
 def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
-                user_cmaps=None, savefig=False, dpi=300, dark_mode=False):
+                user_cmaps=None, savefig=False, dpi=300, dark_mode=False,
+                figsize=(7,7)):
     '''
     Plot a hexbin density plot of a timestep
     Parameters
@@ -273,6 +278,9 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
+    figsize: tuple of float, optional
+        width and height of figure in inches (width, height)
+        by default is (7,7)
     '''
     axes = error_handling_axes(axes)
     t = int(t)
@@ -284,7 +292,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            plt.figure(figsize=(7,7))
+            plt.figure(figsize=figsize)
             plt.minorticks_on()
             plt.tick_params(axis='both', length=2, direction='in',
                             which='both', right=True, top=True)
@@ -447,7 +455,8 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
 def plot_panel(positions, axes, timesteps='auto',
                nrows_ncols=[3,3], sort=True, scale=50,
                user_colors=None, snapshot_save_rate=10,
-               savefig=False, dpi=300, dark_mode=False):
+               savefig=False, dpi=300, dark_mode=False,
+               subplot_size=3.5):
     '''
     Plot a grid of orthagonal projections to visualize particle positions across
     multiple snapshots, for any arbitrary number of rows and cols
@@ -495,6 +504,10 @@ def plot_panel(positions, axes, timesteps='auto',
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
+    subplot_size: float, optional
+    scale factor controlling figsize. defined as
+    figsize = (Ny*subplot_size, Nx*subplot_size).
+    by default is 3.5
     '''
     # error handling
     axes = error_handling_axes(axes)
@@ -506,7 +519,6 @@ def plot_panel(positions, axes, timesteps='auto',
     labels = ['X', 'Y', 'Z']
     ax1, ax2 = axes
     Nx, Ny = nrows_ncols
-    subplot_size = 3.5
     figsize = (Ny*subplot_size, Nx*subplot_size)
     style = 'dark_background' if dark_mode else 'default'
     ec = (0, 0, 0) if dark_mode else (1, 1, 1)
@@ -597,7 +609,8 @@ def plot_panel(positions, axes, timesteps='auto',
 def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                   nrows_ncols=[3,3], sort=True, scale=50,
                   user_cmaps=None, snapshot_save_rate=10,
-                  savefig=False, dpi=300, dark_mode=False):
+                  savefig=False, dpi=300, dark_mode=False,
+                  subplot_size=3.5):
     '''
     Plot a grid of hexbin plots to visualize particle positions across
     multiple snapshots, for any arbitrary number of rows and cols
@@ -644,6 +657,10 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
+    subplot_size: float, optional
+        scale factor controlling figsize. defined as
+        figsize = (Ny*subplot_size, Nx*subplot_size).
+        by default is 3.5
     '''
     # error handling
     axes = error_handling_axes(axes)
@@ -661,7 +678,6 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
     extent = [-scale, scale, -scale, scale]
     ax1, ax2 = axes
     Nx, Ny = nrows_ncols
-    subplot_size = 3.5
     figsize = (Ny*subplot_size, Nx*subplot_size)
     style = 'dark_background' if dark_mode else 'default'
     ec = (0, 0, 0) if dark_mode else (1, 1, 1)

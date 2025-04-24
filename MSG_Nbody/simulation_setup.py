@@ -177,8 +177,9 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
-    figsize: tuple of float
+    figsize: tuple of float, optional
         width and height of figure in inches (width, height)
+        by default is (10,5)
     '''
     timesteps = int(timesteps)
     # determine initial conditions from COM
