@@ -146,12 +146,10 @@ def MSG_Nbody(positions, velocities, masses, dt, timesteps, **kwargs):
     print(r'simulation running....  /ᐠ –ꞈ –ᐟ\<[pls be patient]')
     for i in tqdm(range(start_idx, timesteps+1)):
         # 1/2 kick
-        # velocities += accel * dt/2.0
-        velocities = leapfrog_integration(velocities, accel, dt, 2.0)
+        velocities += accel * dt/2.0
 
         # drift
-        # positions += velocities * dt
-        positions = leapfrog_integration(positions, velocities, dt, 1.0)
+        positions += velocities * dt
 
         # update accelerations
         accel, potential = compute_accel_potential(positions, masses,
@@ -159,8 +157,7 @@ def MSG_Nbody(positions, velocities, masses, dt, timesteps, **kwargs):
                                                    softening_sq, N,
                                                    block_size=block_size)
         # update velocities
-        #velocities += accel * dt/2.0
-        velocities = leapfrog_integration(velocities, accel, dt, 2.0)
+        velocities += accel * dt/2.0
 
         # write positions, velocities, and potential to binary file
         if i % snapshot_save_rate == 0:
@@ -168,8 +165,3 @@ def MSG_Nbody(positions, velocities, masses, dt, timesteps, **kwargs):
                                         potential, directory, N, i)
 
     print(r'simulation complete [yay!!! =＾● ᆺ ●＾= ✿✧･ﾟ: ✧･ﾟ]')
-
-@njit(parallel=True, fastmath={'nnan', 'ninf'}, inline='always')
-def leapfrog_integration(quantity, rate_of_change, dt, factor):
-    quantity += rate_of_change * dt/factor
-    return quantity
