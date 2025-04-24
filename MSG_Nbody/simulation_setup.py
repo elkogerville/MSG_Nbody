@@ -143,9 +143,10 @@ def compute_escape_velocity(x, y, z, M):
 
     return escape_vel
 
-def plot_orbital_trajectory(positions, velocities, masses, dt,
+def plot_orbital_trajectory(positions, initial_vels, masses, dt,
                             timesteps, scale=100, plot_glxys=False,
-                            savefig=False, dpi=300, dark_mode=False):
+                            savefig=False, dpi=300, dark_mode=False,
+                            figsize=(10,5)):
     '''
     Plot orbital trajectory of a galaxy merger by computing a point mass
     N-body simulation representing the galaxies involved in the merger
@@ -154,9 +155,9 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
     positions: list of np.ndarray[np.float64]
         list of Nx3 arrays of positions, where N is the number of
         particles per galaxy, and 3 is the number of dimensions
-    velocities: list of np.ndarray[np.float64]
-        list of Nx3 arrays of velocities, N is the number of
-        particles per galaxy, and 3 is the number of dimensions
+    initial_vels: list of np.ndarray[np.float64]
+        list of len(positions), containing 1x3 arrays representing
+        the initial vx,vy,vz velocities given to each galaxy
     masses: list of np.ndarray[np.float64]
         list of Nx1 arrays of masses, where N is the number of
         particles per galaxy, and 3 is the number of dimensions
@@ -176,18 +177,19 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
         dpi of saved figure
     dark_mode: boolean, optional
         if True, uses matplotlib dark_background style
+    figsize: tuple of float
+        width and height of figure in inches (width, height)
     '''
     timesteps = int(timesteps)
     # determine initial conditions from COM
     # loop through each galaxy and compute COM
     pos_com, vel_com, gal_mass = [], [], []
-    for (pos, vel, mass) in zip(positions, velocities, masses):
+    for (pos, mass) in zip(positions, masses):
         total_mass = np.sum(mass)
         com = np.sum(pos*mass, axis=0)/total_mass
-        com_v = np.sum(vel*mass, axis=0)/total_mass
         pos_com.append(com)
-        vel_com.append(com_v)
         gal_mass.append(total_mass)
+
     N = len(pos_com)
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
@@ -196,7 +198,7 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            fig, ax = plt.subplots(1,2, figsize=(10,5))
+            fig, ax = plt.subplots(1,2, figsize=figsize)
             for a in ax:
                 a.minorticks_on()
                 a.tick_params(axis='both', length=3, direction='in',
@@ -219,6 +221,12 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
                                                  cmap='rainbow_r',
                                                  dark_mode=dark_mode)
             colors = colors[:N]
+            # plot initial center of mass location with '+'
+            total_pos = np.concatenate(positions, axis=0)
+            total_masses = np.concatenate(masses, axis=0)
+            total_com = np.sum(total_pos*total_masses, axis=0)/np.sum(total_masses)
+            ax[0].scatter(total_com[0], total_com[1], s=100, marker='+', c='k')
+            ax[1].scatter(total_com[0], total_com[2], s=100, marker='+', c='k')
             # nbody simulation loop
             for i in tqdm(range(timesteps)):
                 # 1/2 kick
@@ -243,9 +251,7 @@ def plot_orbital_trajectory(positions, velocities, masses, dt,
                           marker='*', edgecolors=colors[::-1])
             # plot each galaxy initial conditions if true
             if plot_glxys:
-                for i, (pos, vel, mass) in enumerate(zip(positions,
-                                                         velocities,
-                                                         masses)):
+                for i, pos in enumerate(positions):
                     ax[0].scatter(pos[:,0], pos[:,1], color=colors[i],
                                   s=3, alpha=0.05, zorder=0)
                     ax[1].scatter(pos[:,0], pos[:,2], color=colors[i],
