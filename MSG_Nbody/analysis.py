@@ -130,10 +130,10 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
 
             plt.show()
 
-def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
-            plot_cb=False, cb_idx=0, user_colors=None, user_cmaps=None,
-            axes_off=False, savefig=False, dpi=300, dark_mode=False,
-            figsize=(10,10)):
+def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
+            plot_cb=False, cb_idx=0, cb_label=None, user_colors=None,
+            user_cmaps=None, axes_off=False, savefig=False, dpi=300,
+            dark_mode=False, figsize=(10,10)):
     '''
     Plot a 2D projection of a simulation snapshot
     Parameters
@@ -168,6 +168,8 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
         the index of which cmap to use for the colorbar. by default is set to 0
         and corresponds to the lowest galaxy_idx in dict (see above).
         incrementing cb_idx by 1 will select the next galaxy_idx in the cmap dict
+    cb_label: str, optional
+        colobar label
     user_colors: list of str, optional
             allows user to override default colors  with a user
             specified custom list of matplotlib colors
@@ -199,11 +201,12 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
             ax.view_init(elev=elev, azim=azim, roll=roll)
             if axes_off:
                 ax.set_axis_off()
-            if cmap_dict == False:
+            if cmap_dict == None:
                 cmap_dict = {}
             # set plot colors
             pos, colors, cmaps = set_plot_colors(pos, False,
                                                  user_colors=user_colors,
+                                                 cmap_dict=cmap_dict,
                                                  user_cmaps=user_cmaps,
                                                  dark_mode=dark_mode)
             counter = 0
@@ -211,15 +214,17 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=False,
                 gal = galaxy[t]
                 colors_i = cmap_dict.get(i, None)
                 if colors_i is not None:
+                    print(cmap_dict[i].shape)
                     im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.2,
                                       c=cmap_dict[i], cmap=cmaps[counter%len(pos)])
                     if counter == cb_idx and plot_cb:
                         cbar = fig.colorbar(im, ax=ax, shrink=0.5)
-                        cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                        if cb_label is not None:
+                            cbar.ax.set_ylabel(cb_label, size=16)
                     counter += 1
                 else:
                     ax.scatter3D(gal[:,0], gal[:,1], gal[:,2],
-                                 s=0.1, alpha=0.8, c=colors[i])
+                                 s=0.1, alpha=0.8, color=colors[i])
 
             ax.set_xlabel('X', size = 16)
             ax.set_ylabel('Y', size = 16)
@@ -1655,7 +1660,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
     )
     # default cmap list
     YlGnBu_r = plt.get_cmap('YlGnBu_r')
-    YlGnBu_r = ListedColormap(YlGnBu_r(np.linspace(0.2, 1, 256)))
+    YlGnBu_r = ListedColormap(YlGnBu_r(np.linspace(0.15, 1, 256)))
     cmaps = (
         ['GnBu_r', 'RdPu_r', 'Purples_r', 'cividis',
         'Grays_r', 'Greens_r', 'BuPu_r', 'summer']
@@ -1666,6 +1671,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
     # number of key:value pairs in cmap dictionary
     N_cmap_dict = len(cmap_dict) if cmap_dict is not None else 0
     N_galaxies = len(positions)
+
     # concatenate positions if sort = True
     if sort:
         positions = [np.concatenate(tag_particles(positions), axis=1)]
