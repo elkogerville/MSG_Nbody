@@ -1733,20 +1733,18 @@ def tag_particles(positions):
     -------
     pos: list of np.ndarray[np.float64]
         list of TxNx4 arrays of positions, where the new 4th column
-        is a unique tag for each galaxy. Thus all particles in each galaxy N
-        have a tag of N-1
+        is a unique tag for each galaxy
     '''
     pos = []
-    for i in range(len(positions)):
-        # number of timesteps
-        timesteps = positions[i].shape[0]
-        # number of particles
-        N = positions[i].shape[1]
-        # TxNx1 matrix of ones
-        ones = np.ones((timesteps, N, 1))
-        # append matrix as a unique tag
-        pos_sort = np.append(positions[i], ones*i, axis=2)
-        pos.append(pos_sort)
+    for i, arr in enumerate(positions):
+        T, N, _ = arr.shape
+        # preallocate a TxNx4 array
+        pos_tag = np.empty((T, N, 4), dtype=arr.dtype)
+        # copy position data into first 3 columns
+        pos_tag[..., :3] = arr
+        # assign galaxy tag i to the 4th column
+        pos_tag[..., 3] = i
+        pos.append(pos_tag)
 
     return pos
 
