@@ -13,7 +13,6 @@ Dependencies:
 import os
 import numpy as np
 from tqdm import tqdm
-from numba import njit
 from .simulation_setup import ascontiguousarray
 from .acceleration_potential import compute_accel_potential
 from .input_output import save_snapshot_2_binary_file, create_output_directory
