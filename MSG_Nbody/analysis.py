@@ -24,7 +24,7 @@ from tqdm import tqdm
 from .input_output import save_figure_2_disk, error_handling_axes
 
 def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
-            cb_label=None, user_colors=None, user_cmaps=None,
+            cb_label=None, user_colors=None, user_cmaps=None, s=0.5,
             snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 2D projection of a simulation snapshot
@@ -88,7 +88,7 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            figsize = (6,6) if cb_label is None else (6.3, 5)
+            figsize = (6,6) if sort else (6.3, 5)
             fig, ax = plt.subplots(figsize=figsize)
             ax.minorticks_on()
             ax.tick_params(axis='both', length=2, direction='in',
@@ -110,11 +110,11 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
                                                            t, axes,
                                                            colors, cmaps)
                     ax.scatter(pos_[:, ax1], pos_[:, ax2],
-                               s=0.5, color=c, alpha=a)
+                               s=s, color=c, alpha=a)
                 else:
                     colors_i = cmap_dict.get(i, None)
                     if colors_i is not None:
-                        im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=0.5,
+                        im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=s,
                                         c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
                         if counter == cb_idx:
                             cbar = fig.colorbar(im, ax=ax)
@@ -123,7 +123,7 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
                         counter += 1
                     else:
                         ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
-                                   s=0.5, color=colors[i])
+                                   s=s, color=colors[i])
 
             plt.text(scale/1.8, scale/1.2, 't = {}'.format(t*snapshot_save_rate),
                      bbox=dict(boxstyle="round", ec=ec,fc=fc,))
@@ -1721,6 +1721,8 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
     N_cmap_dict = len(cmap_dict) if cmap_dict is not None else 0
     N_galaxies = len(positions)
     N_colors_needed = N_galaxies - N_cmap_dict
+    # shift default cmaps by number of colors needed
+    cmaps = [cmaps[(N_colors_needed + i) % len(cmaps)] for i in range(N_cmap_dict)]
 
     # ensure enough colors are provided
     if user_colors is not None:
@@ -1845,7 +1847,9 @@ def sort_positions(positions, cmap_dict, timestep, axes, color_arr, cmap_arr):
     # get unique tags (1 unique tag per galaxy)
     unique_tags, inverse = np.unique(tags, return_inverse=True)
     unique_tags = np.sort(unique_tags)
+
     tag_table = {i: np.where(inverse == i)[0] for i in range(len(unique_tags))}
+
     # generate increasing alphas per galaxy
     min_alpha, max_alpha = 0.6, 0.8
     alpha_step = (max_alpha - min_alpha) / max(1, len(unique_tags)-1)
@@ -1861,10 +1865,9 @@ def sort_positions(positions, cmap_dict, timestep, axes, color_arr, cmap_arr):
     N_color = len(color_arr)
     counter_cmap, counter_color = 0, 0
 
-    for i, tag in enumerate(unique_tags):
-        idx = np.where(pos_sorted[:,3] == tag)[0]
-        idx2 = tag_table[i]
-        print(np.allclose(idx, idx2))
+    for i in range(len(unique_tags)):
+
+        idx = tag_table[i]
 
         cmap_dict_arr = cmap_dict.get(i, None)
         if cmap_dict_arr is not None:
