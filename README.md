@@ -4,7 +4,7 @@
 
 
 <p align="center">
-  <img src="ANIMATIONS/NGC1316_hexbin_xy_gs300_dark.gif" width="45%">
+  <img src="ANIMATIONS/NGC1316_hexbin_xy_gs300_dark.gif" width="42%">
   <img src="ANIMATIONS/xy_density_plot_sim2_dark.gif" width="45%">
 </p>
 
