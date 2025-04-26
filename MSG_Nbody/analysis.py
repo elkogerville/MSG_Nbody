@@ -319,13 +319,13 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             ax1, ax2 = axes
             labels = ['X', 'Y', 'Z']
             extent = [-scale, scale, -scale, scale]
-
+            if sort:
+                positions = [np.concatenate(positions, axis=1)]
             _, cmaps = set_plot_colors(positions, user_cmaps=user_cmaps,
                                        cmap_dict=[None]*len(positions),
                                        dark_mode=dark_mode)
             N = 1 if sort else len(cmaps)
-            if sort:
-                positions = [np.concatenate(positions, axis=1)]
+
             counter = 0
             for i, pos in enumerate(positions):
                 plt.hexbin(pos[t,:,ax1], pos[t,:,ax2], gridsize=gridsize,
