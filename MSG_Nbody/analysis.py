@@ -99,11 +99,10 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
             ax.tick_params(axis='both', length=2, direction='in',
                            which='both', right=True, top=True)
             # set plot colors
-            pos, colors, cmaps = set_plot_colors(pos, sort,
-                                                 user_colors=user_colors,
-                                                 user_cmaps=user_cmaps,
-                                                 cmap_dict=cmap_dict,
-                                                 dark_mode=dark_mode)
+            colors, cmaps = set_plot_colors(pos, user_colors=user_colors,
+                                            user_cmaps=user_cmaps,
+                                            cmap_dict=cmap_dict,
+                                            dark_mode=dark_mode)
             ax1, ax2 = axes
             ax_labels = ['X', 'Y', 'Z']
             if cmap_dict == None:
@@ -222,11 +221,10 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
             if cmap_dict == None:
                 cmap_dict = {}
             # set plot colors
-            pos, colors, cmaps = set_plot_colors(pos, False,
-                                                 user_colors=user_colors,
-                                                 cmap_dict=cmap_dict,
-                                                 user_cmaps=user_cmaps,
-                                                 dark_mode=dark_mode)
+            colors, cmaps = set_plot_colors(pos, user_colors=user_colors,
+                                            cmap_dict=cmap_dict,
+                                            user_cmaps=user_cmaps,
+                                            dark_mode=dark_mode)
             counter = 0
             for i, galaxy in enumerate(pos):
                 gal = galaxy[t]
@@ -321,9 +319,10 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             ax1, ax2 = axes
             labels = ['X', 'Y', 'Z']
             extent = [-scale, scale, -scale, scale]
-            positions, _, cmaps = set_plot_colors(positions, False,
-                                                  user_cmaps=user_cmaps,
-                                                  dark_mode=dark_mode)
+
+            _, cmaps = set_plot_colors(positions, user_cmaps=user_cmaps,
+                                       cmap_dict=[None]*len(positions),
+                                       dark_mode=dark_mode)
             N = 1 if sort else len(cmaps)
             if sort:
                 positions = [np.concatenate(positions, axis=1)]
@@ -440,11 +439,11 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                                  bottom=True, top=True, labelbottom=True, pad=5)
             ax_histy.xaxis.set_label_position("bottom")
             # set plot colors
-            positions, colors, cmaps = set_plot_colors(positions, sort,
-                                                       user_colors=user_colors,
-                                                       user_cmaps=user_cmaps,
-                                                       cmap_dict=cmap_dict,
-                                                       dark_mode=dark_mode)
+            colors, cmaps = set_plot_colors(positions,
+                                            user_colors=user_colors,
+                                            user_cmaps=user_cmaps,
+                                            cmap_dict=cmap_dict,
+                                            dark_mode=dark_mode)
             N_colors = len(colors)
             ax1, ax2 = axes
             # loop through each galaxy
@@ -1665,7 +1664,7 @@ def shift_2_com_frame(positions, velocities, mass, galaxy_idx=None):
 
 # ––––––––––––––––––––––––––– PLOT PARAMS ––––––––––––––––––––––––––––––––––––––
 
-def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
+def set_plot_colors(positions, user_colors=None, user_cmaps=None,
                     cmap_dict=None, cmap='rainbow_r', dark_mode=False):
     '''
     Set plot colors for each plotting function based on the arguments
@@ -1676,9 +1675,6 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
         list of TxNx3 arrays of positions, where T is the number
         of timesteps, N is the number of particles per galaxy,
         and 3 is the number of dimensions
-    sort: boolean
-        determines whether or not to concatenate positions into
-        a single array for sorting
     user_colors: list of str, optional
         allows user to override default colors/cmaps with a user
         specified custom list of matplotlib colors/
@@ -1702,13 +1698,6 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
         dark_background style
     Returns
     -------
-    positions:
-        original positions array. if sort=True, the positions array
-        is concatenated along axis=1
-        ex: positions = [ ar1, ar2], sort=True
-        ar1.shape: TxNx3
-        ar2.shape: TxMx3
-        returned positions shape: Tx(N+M)x3
     colors: array like
         list of colors for the plot
     cmaps: array like
@@ -1774,7 +1763,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                 f'defaulting to MSG_Nbody cmaps list: {cmaps[:N_cmap_dict]}'
             )
 
-    return positions, colors[:N_colors_needed], cmaps[:N_cmap_dict]
+    return colors[:N_colors_needed], cmaps[:N_cmap_dict]
 
 def tag_particles(positions):
     '''
