@@ -11,6 +11,7 @@ Dependencies:
     - matplotlib
     - tqdm
 '''
+from os import error
 import numpy as np
 from scipy import stats
 from scipy.integrate import quad
@@ -21,7 +22,7 @@ import matplotlib.ticker as ticker
 from matplotlib.colors import to_rgba
 from matplotlib.colors import ListedColormap
 from tqdm import tqdm
-from .input_output import save_figure_2_disk, error_handling_axes
+from .input_output import save_figure_2_disk, error_handling_axes, error_handling_size
 
 def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
             cb_label=None, user_colors=None, user_cmaps=None, s=0.5,
@@ -65,6 +66,9 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
     user_cmaps: list of str, optional
         allows user to override default cmaps with a user
         specified custom list of matplotlib cmaps
+    s: float or list of float, optional
+        size of scatter markers, or a list of scatter marker sizes
+        for each galaxy in pos
     snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
@@ -78,6 +82,7 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
         if True, uses matplotlib dark_background style
     '''
     axes = error_handling_axes(axes)
+    s = error_handling_size(s, pos)
     t = int(t)
     style = 'dark_background' if dark_mode else 'default'
     ec = (0, 0, 0) if dark_mode else (1, 1, 1)
@@ -110,11 +115,11 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
                                                            t, axes,
                                                            colors, cmaps)
                     ax.scatter(pos_[:, ax1], pos_[:, ax2],
-                               s=s, color=c, alpha=a)
+                               s=s[i], color=c, alpha=a)
                 else:
                     colors_i = cmap_dict.get(i, None)
                     if colors_i is not None:
-                        im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=s,
+                        im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=s[i],
                                         c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
                         if counter == cb_idx:
                             cbar = fig.colorbar(im, ax=ax)
@@ -123,7 +128,7 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
                         counter += 1
                     else:
                         ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
-                                   s=s, color=colors[i])
+                                   s=s[i], color=colors[i])
 
             plt.text(scale/1.8, scale/1.2, 't = {}'.format(t*snapshot_save_rate),
                      bbox=dict(boxstyle="round", ec=ec,fc=fc,))
@@ -141,7 +146,7 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
 
 def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
             plot_cb=False, cb_idx=0, cb_label=None, user_colors=None,
-            user_cmaps=None, axes_off=False, savefig=False, dpi=300,
+            user_cmaps=None, axes_off=False, s=0.5, savefig=False, dpi=300,
             dark_mode=False, figsize=(10,10)):
     '''
     Plot a 2D projection of a simulation snapshot
@@ -187,6 +192,9 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
         specified custom list of matplotlib cmaps
     axes_off: boolean, optional
         if True, disables plot axes. False by default
+    s: float or list of float, optional
+        size of scatter markers, or a list of scatter marker sizes
+        for each galaxy in pos
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -197,6 +205,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
         width and height of figure in inches (width, height)
         by default is (10,10)
         '''
+    s = error_handling_size(s, pos)
     style = 'dark_background' if dark_mode else 'default'
     with plt.style.context(style):
         with plt.rc_context({
@@ -223,7 +232,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
                 gal = galaxy[t]
                 colors_i = cmap_dict.get(i, None)
                 if colors_i is not None:
-                    im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=0.2,
+                    im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=s[i],
                                       c=cmap_dict[i], cmap=cmaps[counter%len(pos)])
                     if counter == cb_idx and plot_cb:
                         cbar = fig.colorbar(im, ax=ax, shrink=0.5)
@@ -232,7 +241,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
                     counter += 1
                 else:
                     ax.scatter3D(gal[:,0], gal[:,1], gal[:,2],
-                                 s=0.1, alpha=0.8, color=colors[i])
+                                 s=s[i], alpha=0.8, color=colors[i])
 
             ax.set_xlabel('X', size = 16)
             ax.set_ylabel('Y', size = 16)
@@ -337,7 +346,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
 
 def plot_density_histogram(positions, timestep, axes, sort=True,
                            scale=100, cmap_dict=None, user_colors=None,
-                           user_cmaps=None, savefig=False,
+                           user_cmaps=None, s=0.5, savefig=False,
                            dpi=300, dark_mode=False):
     '''
     Plot an orthogonal projection of a timestep with log density histograms
@@ -380,6 +389,9 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
     user_cmaps: list of str, optional
         allows user to override default cmaps with a user
         specified custom list of matplotlib cmaps
+    s: float or list of float, optional
+        size of scatter markers, or a list of scatter marker sizes
+        for each galaxy in positions
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -388,6 +400,7 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
         if True, uses matplotlib dark_background style
     '''
     axes = error_handling_axes(axes)
+    s = error_handling_size(s, positions)
     timestep = int(timestep)
     labels = ['X', 'Y', 'Z']
     style = 'dark_background' if dark_mode else 'default'
@@ -442,7 +455,7 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                                                            timestep, axes, colors,
                                                            cmaps)
                     ax.scatter(pos_[:, ax1], pos_[:, ax2],
-                               s=0.4, color=c, alpha=a)
+                               s=s[i], color=c, alpha=a)
                     # # loop through each tag and plot histogram
                     for j in range(len(tag_table)):
                         idx = tag_table[j]
@@ -459,7 +472,7 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                     colors_i = cmap_dict.get(i, None)
                     if colors_i is not None:
                         current_cmap = plt.get_cmap(cmaps[counter%len(cmaps)])
-                        ax.scatter(pos[:,ax1], pos[:,ax2], s=0.5, c=colors_i,
+                        ax.scatter(pos[:,ax1], pos[:,ax2], s=s[i], c=colors_i,
                                    cmap=current_cmap)
                         col = current_cmap(0.4)
                         # top histogram (x-axis)
@@ -473,14 +486,14 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                         counter += 1
                     else:
                         ax.scatter(pos[:,ax1], pos[:,ax2],
-                                   s=0.5, color=colors[counter%len(colors)])
+                                   s=s[i], color=colors[counter%N_colors])
                         # top histogram (x-axis)
-                        ax_histx.hist(pos[:, ax1], bins='auto', color=colors[counter%len(colors)],
+                        ax_histx.hist(pos[:, ax1], bins='auto', color=colors[counter%N_colors],
                                       histtype='step', lw=1, density=True)
                         # right histogram (y-axis)
                         ax_histy.hist(pos[:, ax2], bins='auto',
                                       orientation='horizontal',
-                                      color=colors[counter%len(colors)], histtype='step',
+                                      color=colors[counter%N_colors], histtype='step',
                                       lw=1, density=True)
                         counter += 1
 

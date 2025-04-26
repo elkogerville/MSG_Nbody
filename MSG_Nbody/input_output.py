@@ -187,3 +187,26 @@ def error_handling_axes(axes):
     axes = [int(x) for x in axes]
 
     return axes
+
+def error_handling_size(s, positions):
+    '''
+    Ensures scatter size parameter is correctly formatted for plotting functions
+    Parameters
+    ----------
+    s: float
+        size of scatter marker
+    positions: list of np.ndarray[np.float64]
+        list of TxNx3 arrays of positions, where T is the number
+        of timesteps, N is the number of particles per galaxy,
+        and 3 is the number of dimensions
+    Returns
+    -------
+    s: list of float
+        list of scatter marker size for each array in positions
+    '''
+    if isinstance(s, list):
+        s = s if len(s) >= len(positions) else s * len(positions)
+    else:
+        s = [s]*len(positions)
+
+    return s
