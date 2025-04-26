@@ -474,7 +474,7 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                     colors_i = cmap_dict.get(i, None)
                     if colors_i is not None:
                         current_cmap = plt.get_cmap(cmaps[counter%len(cmaps)])
-                        ax.scatter(pos[:,ax1], pos[:,ax2], s=s[i], c=colors_i,
+                        ax.scatter(pos[:,ax1], pos[:,ax2], s=s[i], c=colors_i[timestep],
                                    cmap=current_cmap)
                         col = current_cmap(0.4)
                         # top histogram (x-axis)
@@ -660,7 +660,8 @@ def plot_panel(positions, axes, timesteps='auto',
                         timestep = timesteps[counter]
                         ax = get_ax(j, k, axs, Nx, Ny)
                         if sort:
-                            pos_, c, a, _ = sort_positions(positions, cmap_dict,
+                            c_dict = cmap_dict.copy()
+                            pos_, c, a, _ = sort_positions(positions, c_dict,
                                                            timestep, axes,
                                                            colors, cmaps)
                             ax.scatter(pos_[:,ax1], pos_[:,ax2],
@@ -673,7 +674,8 @@ def plot_panel(positions, axes, timesteps='auto',
                             colors_i = cmap_dict.get(i, None)
                             if colors_i is not None:
                                 ax.scatter(pos_t[:,ax1], pos_t[:,ax2], s=s[i],
-                                           c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
+                                           c=cmap_dict[i][timestep],
+                                           cmap=cmaps[i%len(cmaps)])
                             else:
                                 ax.scatter(pos_t[:,ax1], pos_t[:,ax2],
                                            s=s[i], color=colors[i])
@@ -690,7 +692,7 @@ def plot_panel(positions, axes, timesteps='auto',
 
             plt.show()
 
-def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
+def plot_hexpanel(positions, axes, gridsize=300, timesteps='auto',
                   nrows_ncols=[3,3], sort=True, scale=50,
                   user_cmaps=None, snapshot_save_rate=10,
                   savefig=False, dpi=300, dark_mode=False,
