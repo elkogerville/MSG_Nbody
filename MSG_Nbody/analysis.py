@@ -23,9 +23,9 @@ from matplotlib.colors import ListedColormap
 from tqdm import tqdm
 from .input_output import save_figure_2_disk, error_handling_axes
 
-def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0, cb_label=None,
-            user_colors=None, user_cmaps=None, snapshot_save_rate=10,
-            savefig=False, dpi=300, dark_mode=False):
+def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
+            cb_label=None, user_colors=None, user_cmaps=None,
+            snapshot_save_rate=10, savefig=False, dpi=300, dark_mode=False):
     '''
     Plot a 2D projection of a simulation snapshot
     Parameters
@@ -59,8 +59,6 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0, cb_label=None,
         the index of which cmap to use for the colorbar. by default is set to 0
         and corresponds to the lowest galaxy_idx in dict (see above). incrementing
         cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
-    cb_label: str, optional
-        colobar label
     user_colors: list of str, optional
         allows user to override default colors with a user
         specified custom list of matplotlib colors
@@ -90,13 +88,13 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0, cb_label=None,
             'font.family': ['Courier New', 'DejaVu Sans Mono'],
             'mathtext.default': 'regular'
         }):
-            figsize = (6,6) if not cmap_dict else (6.3, 5)
+            figsize = (6,6) if cb_label is None else (6.3, 5)
             fig, ax = plt.subplots(figsize=figsize)
             ax.minorticks_on()
             ax.tick_params(axis='both', length=2, direction='in',
                            which='both', right=True, top=True)
             # set plot colors
-            pos, colors, cmaps = set_plot_colors(pos, False,
+            pos, colors, cmaps = set_plot_colors(pos, sort,
                                                  user_colors=user_colors,
                                                  user_cmaps=user_cmaps,
                                                  cmap_dict=cmap_dict,
@@ -107,18 +105,25 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0, cb_label=None,
                 cmap_dict = {}
             counter = 0
             for i, galaxy in enumerate(pos):
-                colors_i = cmap_dict.get(i, None)
-                if colors_i is not None:
-                    im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=0.5,
-                                    c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
-                    if counter == cb_idx:
-                        cbar = fig.colorbar(im, ax=ax)
-                        if cb_label is not None:
-                            cbar.ax.set_ylabel(cb_label, size=16)
-                    counter += 1
+                if sort:
+                    pos_, c, a, tag_table = sort_positions(pos, cmap_dict,
+                                                           t, axes,
+                                                           colors, cmaps)
+                    ax.scatter(pos_[:, ax1], pos_[:, ax2],
+                               s=0.5, color=c, alpha=a)
                 else:
-                    ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
-                               s=0.5, color=colors[i])
+                    colors_i = cmap_dict.get(i, None)
+                    if colors_i is not None:
+                        im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=0.5,
+                                        c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
+                        if counter == cb_idx:
+                            cbar = fig.colorbar(im, ax=ax)
+                            if cb_label is not None:
+                                cbar.ax.set_ylabel(cb_label, size=16)
+                        counter += 1
+                    else:
+                        ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
+                                   s=0.5, color=colors[i])
 
             plt.text(scale/1.8, scale/1.2, 't = {}'.format(t*snapshot_save_rate),
                      bbox=dict(boxstyle="round", ec=ec,fc=fc,))
@@ -331,7 +336,8 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
             plt.show()
 
 def plot_density_histogram(positions, timestep, axes, sort=True,
-                           scale=100, user_colors=None, savefig=False,
+                           scale=100, cmap_dict=None, user_colors=None,
+                           user_cmaps=None, savefig=False,
                            dpi=300, dark_mode=False):
     '''
     Plot an orthogonal projection of a timestep with log density histograms
@@ -359,9 +365,21 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
     scale: float, optional
         defines the half-width of the plotting region. the x and y limits
         will be set to (-scale, scale)
+    cmap_dict: dict, optional
+        dictionary mapping an integer key (galaxy index number in pos)
+        to an array of of shape N, where N is the number of particles in pos.
+        used to apply a colormapping to that galaxy
+        example: map x velocities of the first galxaxy in pos at timestep t=0
+        t = 0
+        galaxy_idx = 0
+        vx = velocities[galaxy_idx][t,:,0]
+        cmap_dict = {galaxy_idx: vx}
     user_colors: list of str, optional
         allows user to override default colors with a user
         specified custom list of matplotlib colors
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
     savefig: boolean, optional
         saves the figure to the working directory if True
     dpi: int, optional
@@ -409,40 +427,63 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                                  bottom=True, top=True, labelbottom=True, pad=5)
             ax_histy.xaxis.set_label_position("bottom")
             # set plot colors
-            positions, colors, _ = set_plot_colors(positions, sort,
-                                                   user_colors=user_colors,
-                                                   dark_mode=dark_mode)
+            positions, colors, cmaps = set_plot_colors(positions, sort,
+                                                       user_colors=user_colors,
+                                                       user_cmaps=user_cmaps,
+                                                       cmap_dict=cmap_dict,
+                                                       dark_mode=dark_mode)
+            N_colors = len(colors)
             ax1, ax2 = axes
             # loop through each galaxy
+            counter = 0
             for i in range(len(positions)):
                 if sort:
-                    pos_, c, a, c_unique = sort_positions(positions[i], timestep,
-                                                          axes, colors)
+                    pos_, c, a, tag_table = sort_positions(positions, cmap_dict,
+                                                           timestep, axes, colors,
+                                                           cmaps)
                     ax.scatter(pos_[:, ax1], pos_[:, ax2],
                                s=0.4, color=c, alpha=a)
-                    tags = pos_[:, 3].astype(int)
-                    unique_tags = np.sort(np.unique(tags))
-                    # loop through each tag and plot histogram
-                    for j in range(c_unique.shape[0]):
-                        mask = np.where(pos_[:,3] == unique_tags[j])[0]
-                        ax_histx.hist(pos_[mask][:, ax1], bins='auto',
-                                      color=c_unique[j], histtype='step',
+                    # # loop through each tag and plot histogram
+                    for j in range(len(tag_table)):
+                        idx = tag_table[j]
+                        glxy_col = np.mean(c[idx], axis=0)
+                        ax_histx.hist(pos_[idx][:, ax1], bins='auto',
+                                      color=glxy_col, histtype='step',
                                       lw=0.8, density=True)
-                        ax_histy.hist(pos_[mask][:, ax2], bins='auto',
-                                      orientation='horizontal', color=c_unique[j],
+                        ax_histy.hist(pos_[idx][:, ax2], bins='auto',
+                                      orientation='horizontal', color=glxy_col,
                                       histtype='step', lw=0.8, density=True)
+                    break
                 else:
                     pos = positions[i][timestep]
-                    # main scatter plot
-                    ax.scatter(pos[:, ax1], pos[:, ax2], s=0.4, color=colors[i])
-                    # top histogram (x-axis)
-                    ax_histx.hist(pos[:, ax1], bins='auto', color=colors[i],
-                                  histtype='step', lw=1, density=True)
-                    # right histogram (y-axis)
-                    ax_histy.hist(pos[:, ax2], bins='auto',
-                                  orientation='horizontal',
-                                  color=colors[i], histtype='step',
-                                  lw=1, density=True)
+                    colors_i = cmap_dict.get(i, None)
+                    if colors_i is not None:
+                        current_cmap = plt.get_cmap(cmaps[counter%len(cmaps)])
+                        ax.scatter(pos[:,ax1], pos[:,ax2], s=0.5, c=colors_i,
+                                   cmap=current_cmap)
+                        col = current_cmap(0.4)
+                        # top histogram (x-axis)
+                        ax_histx.hist(pos[:, ax1], bins='auto', color=col,
+                                      histtype='step', lw=1, density=True)
+                        # right histogram (y-axis)
+                        ax_histy.hist(pos[:, ax2], bins='auto',
+                                      orientation='horizontal',
+                                      color=col, histtype='step',
+                                      lw=1, density=True)
+                        counter += 1
+                    else:
+                        ax.scatter(pos[:,ax1], pos[:,ax2],
+                                   s=0.5, color=colors[counter%len(colors)])
+                        # top histogram (x-axis)
+                        ax_histx.hist(pos[:, ax1], bins='auto', color=colors[counter%len(colors)],
+                                      histtype='step', lw=1, density=True)
+                        # right histogram (y-axis)
+                        ax_histy.hist(pos[:, ax2], bins='auto',
+                                      orientation='horizontal',
+                                      color=colors[counter%len(colors)], histtype='step',
+                                      lw=1, density=True)
+                        counter += 1
+
             # set axis limits
             ax.set_xlim(-scale, scale)
             ax.set_ylim(-scale, scale)
@@ -1376,6 +1417,11 @@ def compute_relative_energy(velocities, potentials):
 
     return epsilons
 
+def compute_magnitude(v):
+    v_mag = np.sqrt(v[:,0]**2 + v[:,1]**2 + v[:,2]**2)
+
+    return v_mag
+
 def compute_hernquist_Ne(M, a, N_stars):
     '''
     Computes the N[E] profile of an analytical hernquist galaxy. this computes
@@ -1674,18 +1720,6 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
     # number of key:value pairs in cmap dictionary
     N_cmap_dict = len(cmap_dict) if cmap_dict is not None else 0
     N_galaxies = len(positions)
-
-    # concatenate positions if sort = True
-    if sort:
-        positions = [np.concatenate(tag_particles(positions), axis=1)]
-        # if sort = True, cmaps cannot be used
-        N_cmap_dict = 0
-        if user_cmaps is not None:
-            user_cmaps = None
-            print('WARNING: user_cmap provided with sort=True\n',
-                  'cmaps can only be used with sort=False')
-    # number of colors needed is total number of galaxies
-    # minus number of galaxies mapped to a cmap
     N_colors_needed = N_galaxies - N_cmap_dict
 
     # ensure enough colors are provided
@@ -1711,9 +1745,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                     f'number of colors needed: {N_colors_needed}\n',
                     f'defaulting to drawing color sequence from cmap {cmap}'
                 )
-    # if more galaxies than default colors
-    if N_galaxies > len(colors):
-        colors = plt.get_cmap(cmap)(np.linspace(0, 1, N_galaxies))
+                colors = plt.get_cmap(cmap)(np.linspace(0, 1, N_galaxies))
 
     if user_cmaps is not None:
         # ensure enough cmaps are provided
@@ -1727,7 +1759,7 @@ def set_plot_colors(positions, sort, user_colors=None, user_cmaps=None,
                 f'defaulting to MSG_Nbody cmaps list: {cmaps[:N_cmap_dict]}'
             )
 
-    return positions, colors, cmaps
+    return positions, colors[:N_colors_needed], cmaps[:N_cmap_dict]
 
 def tag_particles(positions):
     '''
@@ -1757,7 +1789,7 @@ def tag_particles(positions):
 
     return pos
 
-def sort_positions(positions, timestep, axes, color_arr):
+def sort_positions(positions, cmap_dict, timestep, axes, color_arr, cmap_arr):
     '''
     Sort positions along axis omitted in projection and create an array
     of colors with a color corresponding to each particle. For example,
@@ -1792,15 +1824,28 @@ def sort_positions(positions, timestep, axes, color_arr):
     '''
     # compute sorting axis (axis not used)
     sorting_axis = 3 - sum(axes)
+
+    if cmap_dict is not None:
+        # loop through each array in positions, and sort by axis
+        for i, array in enumerate(positions):
+            if cmap_dict.get(i, None) is not None:
+                sorted_idx = np.argsort(array[timestep,:,sorting_axis])
+                cmap_dict[i] = cmap_dict[i][sorted_idx]
+
     # get particles at timestep
+    positions = np.concatenate(tag_particles(positions), axis=1)
     pos = positions[timestep]
+
     # sort by sorting axis
     sorted_indeces = np.argsort(pos[:, sorting_axis])
     pos_sorted = pos[sorted_indeces]
+
     # array of all tags sorted by height
     tags = pos_sorted[:, 3].astype(int)
     # get unique tags (1 unique tag per galaxy)
-    unique_tags = np.sort(np.unique(tags))
+    unique_tags, inverse = np.unique(tags, return_inverse=True)
+    unique_tags = np.sort(unique_tags)
+    tag_table = {i: np.where(inverse == i)[0] for i in range(len(unique_tags))}
     # generate increasing alphas per galaxy
     min_alpha, max_alpha = 0.6, 0.8
     alpha_step = (max_alpha - min_alpha) / max(1, len(unique_tags)-1)
@@ -1809,32 +1854,28 @@ def sort_positions(positions, timestep, axes, color_arr):
                 for i, tag in enumerate(unique_tags)}
     # apply alphas to all particles
     alphas = np.array([alpha_map[tag] for tag in tags])
-    # array to store unique colors
-    unique_colors = []
-    # if more galaxies than base colors
-    # ---------------------------------
-    if len(unique_tags) > len(color_arr):
-        # generate 1 color per galaxy from cmap
-        cmap = plt.get_cmap('rainbow_r', len(unique_tags))
-        # generate RGBA color array
-        colors = np.zeros((len(tags), 4))
-        # for each unique tag assign color to all galaxy particles
-        for i, tag in enumerate(unique_tags):
-            mask = tags == tag
-            colors[mask] = cmap(i)
-            unique_colors.append(cmap(i))
-        # reshape unique colors
-        unique_colors = np.asarray(unique_colors).reshape(-1,4)
-    # if less galaxies than base colors
-    # ---------------------------------
-    else:
-        # color dictionary mapping tags to a color
-        color_map = {tag: color_arr[i] for i, tag in enumerate(unique_tags)}
-        # for each particle assign color mapped to its galaxy
-        colors = np.array([color_map[tag] for tag in tags])
-        # get unique colors
-        for i in color_map:
-            unique_colors.append(color_map[i])
-        unique_colors = np.asarray(unique_colors)
 
-    return pos_sorted, colors, alphas, unique_colors
+    # initialize color array
+    colors = np.zeros(pos_sorted.shape)
+    N_cmap = len(cmap_arr)
+    N_color = len(color_arr)
+    counter_cmap, counter_color = 0, 0
+
+    for i, tag in enumerate(unique_tags):
+        idx = np.where(pos_sorted[:,3] == tag)[0]
+        idx2 = tag_table[i]
+        print(np.allclose(idx, idx2))
+
+        cmap_dict_arr = cmap_dict.get(i, None)
+        if cmap_dict_arr is not None:
+            cmap = plt.get_cmap(cmap_arr[counter_cmap%N_cmap])
+            norm = plt.Normalize(vmin=np.min(cmap_dict_arr),
+                                 vmax=np.max(cmap_dict_arr))
+            rgba = cmap(norm(cmap_dict_arr))
+            colors[idx] = rgba
+            counter_cmap += 1
+        else:
+            colors[idx] = to_rgba(color_arr[counter_color%N_color])
+            counter_color += 1
+
+    return pos_sorted, colors, alphas, tag_table
