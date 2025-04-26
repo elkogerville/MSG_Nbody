@@ -115,11 +115,12 @@ def plot_2D(pos, t, axes, scale=50, sort=True, cmap_dict=None, cb_idx=0,
                                                            colors, cmaps)
                     ax.scatter(pos_[:, ax1], pos_[:, ax2],
                                s=s[i], color=c, alpha=a)
+                    break
                 else:
                     colors_i = cmap_dict.get(i, None)
                     if colors_i is not None:
                         im = ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2], s=s[i],
-                                        c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
+                                        c=colors_i[t], cmap=cmaps[counter%len(cmaps)])
                         if counter == cb_idx:
                             cbar = fig.colorbar(im, ax=ax)
                             if cb_label is not None:
@@ -1453,7 +1454,7 @@ def compute_relative_energy(velocities, potentials):
     return epsilons
 
 def compute_magnitude(v):
-    v_mag = np.sqrt(v[:,0]**2 + v[:,1]**2 + v[:,2]**2)
+    v_mag = np.sqrt(v[:,:,0]**2 + v[:,:,1]**2 + v[:,:,2]**2)
 
     return v_mag
 
@@ -1857,7 +1858,7 @@ def sort_positions(positions, cmap_dict, timestep, axes, color_arr, cmap_arr):
         for i, array in enumerate(positions):
             if cmap_dict.get(i, None) is not None:
                 sorted_idx = np.argsort(array[timestep,:,sorting_axis])
-                cmap_dict[i] = cmap_dict[i][sorted_idx]
+                cmap_dict[i] = cmap_dict[i][timestep][sorted_idx]
 
     # get particles at timestep
     positions = np.concatenate(tag_particles(positions), axis=1)

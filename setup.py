@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='MSG_Nbody',
-    version='0.2.3',
+    version='0.2.5',
     description='Nbody simulation code for galaxy interactions',
     url='https://github.com/elkogerville/MSG_Nbody',
     author='Elko Gerville-Reache',
@@ -12,9 +12,9 @@ setup(
     long_description_content_type='text/markdown',
     include_package_data=True,
     packages=find_packages(exclude=[
-        'ANIMATIONS*', 
-        'DOCUMENTATION*', 
-        'Initial_Conditions*', 
+        'ANIMATIONS*',
+        'DOCUMENTATION*',
+        'Initial_Conditions*',
         'Tests*',
 	'MSG_Nbody.egg-info*',
         '*.egg-info*',
