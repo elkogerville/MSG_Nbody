@@ -795,10 +795,13 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
                     ax.set_box_aspect(1)
                     counter += 1
 
+            if sort:
+                positions = [np.concatenate(positions, axis=1)]
             # set plot colors
-            positions, _, cmaps = set_plot_colors(positions, False,
-                                                  user_cmaps=user_cmaps,
-                                                  dark_mode=dark_mode)
+            _, cmaps = set_plot_colors(positions, user_cmaps=user_cmaps,
+                                       cmap_dict=[None]*len(positions),
+                                       dark_mode=dark_mode)
+
             # number of cmaps
             N = 1 if sort else len(cmaps)
             # set limits
@@ -816,8 +819,6 @@ def plot_hexpanel(positions, axes, gridsize, timesteps='auto',
             fig.text(pady/2, 0.5, labels[ax2],  # y-label
                         ha='center', va='center', rotation='vertical', fontsize=16)
 
-            if sort:
-                positions = [np.concatenate(positions, axis=1)]
             # loop through each galaxy
             for i in range(len(positions)):
                 counter = 0
