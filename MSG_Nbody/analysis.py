@@ -18,11 +18,12 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.ticker as ticker
+from matplotlib.colors import to_rgba
 from matplotlib.colors import ListedColormap
 from tqdm import tqdm
 from .input_output import save_figure_2_disk, error_handling_axes
 
-def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
+def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0, cb_label=None,
             user_colors=None, user_cmaps=None, snapshot_save_rate=10,
             savefig=False, dpi=300, dark_mode=False):
     '''
@@ -58,6 +59,8 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
         the index of which cmap to use for the colorbar. by default is set to 0
         and corresponds to the lowest galaxy_idx in dict (see above). incrementing
         cb_idx by 1 will then select the next galaxy_idx in the cmap dict.
+    cb_label: str, optional
+        colobar label
     user_colors: list of str, optional
         allows user to override default colors with a user
         specified custom list of matplotlib colors
@@ -110,7 +113,8 @@ def plot_2D(pos, t, axes, scale=50, cmap_dict=None, cb_idx=0,
                                     c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
                     if counter == cb_idx:
                         cbar = fig.colorbar(im, ax=ax)
-                        cbar.ax.set_ylabel(r'$V_{X}$', size=16)
+                        if cb_label is not None:
+                            cbar.ax.set_ylabel(cb_label, size=16)
                     counter += 1
                 else:
                     ax.scatter(galaxy[t][:,ax1], galaxy[t][:,ax2],
