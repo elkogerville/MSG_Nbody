@@ -231,7 +231,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
                 colors_i = cmap_dict.get(i, None)
                 if colors_i is not None:
                     im = ax.scatter3D(gal[:,0], gal[:,1], gal[:,2], s=s[i],
-                                      c=cmap_dict[i], cmap=cmaps[counter%len(pos)])
+                                      c=colors_i[t], cmap=cmaps[counter%len(pos)])
                     if counter == cb_idx and plot_cb:
                         cbar = fig.colorbar(im, ax=ax, shrink=0.5)
                         if cb_label is not None:
