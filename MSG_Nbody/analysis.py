@@ -11,7 +11,6 @@ Dependencies:
     - matplotlib
     - tqdm
 '''
-from os import error
 import numpy as np
 from scipy import stats
 from scipy.integrate import quad
@@ -1856,6 +1855,7 @@ def sort_positions(positions, cmap_dict, timestep, axes, color_arr, cmap_arr):
     sorting_axis = 3 - sum(axes)
 
     if cmap_dict is not None:
+        cmap_dict = {k: v.copy() for k, v in cmap_dict.items()}
         # loop through each array in positions, and sort by axis
         for i, array in enumerate(positions):
             if cmap_dict.get(i, None) is not None:
