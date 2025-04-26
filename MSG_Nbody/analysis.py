@@ -218,13 +218,13 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
             ax.view_init(elev=elev, azim=azim, roll=roll)
             if axes_off:
                 ax.set_axis_off()
-            if cmap_dict == None:
-                cmap_dict = {}
             # set plot colors
             colors, cmaps = set_plot_colors(pos, user_colors=user_colors,
                                             cmap_dict=cmap_dict,
                                             user_cmaps=user_cmaps,
                                             dark_mode=dark_mode)
+            if cmap_dict == None:
+                cmap_dict = {}
             counter = 0
             for i, galaxy in enumerate(pos):
                 gal = galaxy[t]
@@ -261,7 +261,7 @@ def plot_3D(pos, t, elev=90, azim=-90, roll=0, scale=60, cmap_dict=None,
                 save_figure_2_disk(dpi)
             plt.show()
 
-def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
+def plot_hexbin(positions, t, axes, gridsize=300, sort=True, scale=100,
                 user_cmaps=None, savefig=False, dpi=300, dark_mode=False,
                 figsize=(7,7)):
     '''
@@ -281,7 +281,7 @@ def plot_hexbin(positions, t, axes, gridsize, sort=True, scale=100,
         list or array of length 2 specifying which two axes
         (0 for x, 1 for y, 2 for z) should be used for the projection.
         ex: axes = [0,1] would specify the xy projection
-    gridsize: int
+    gridsize: int, optional
         number of hexagons in the x-direction. the number of hexagons in the
         y-direction is chosen such that the hexagons are approximately regular
     sort: boolean, optional
@@ -444,6 +444,8 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
                                             user_cmaps=user_cmaps,
                                             cmap_dict=cmap_dict,
                                             dark_mode=dark_mode)
+            if cmap_dict == None:
+                cmap_dict = {}
             N_colors = len(colors)
             ax1, ax2 = axes
             # loop through each galaxy
@@ -515,7 +517,8 @@ def plot_density_histogram(positions, timestep, axes, sort=True,
 
 def plot_panel(positions, axes, timesteps='auto',
                nrows_ncols=[3,3], sort=True, scale=50,
-               user_colors=None, snapshot_save_rate=10,
+               cmap_dict=None, user_colors=None,
+               user_cmaps=None, s=0.5, snapshot_save_rate=10,
                savefig=False, dpi=300, dark_mode=False,
                subplot_size=3.5):
     '''
@@ -554,6 +557,12 @@ def plot_panel(positions, axes, timesteps='auto',
     user_colors: list of str, optional
         allows user to override default colors with a user
         specified custom list of matplotlib colors
+    user_cmaps: list of str, optional
+        allows user to override default cmaps with a user
+        specified custom list of matplotlib cmaps
+    s: float or list of float, optional
+        size of scatter markers, or a list of scatter marker sizes
+        for each galaxy in positions
     snapshot_save_rate: int, optional
         the frequency (in terms of timesteps) at which simulation
         snapshots are saved. is used to convert from timestep index
@@ -572,6 +581,7 @@ def plot_panel(positions, axes, timesteps='auto',
     '''
     # error handling
     axes = error_handling_axes(axes)
+    s = error_handling_size(s, positions)
     if timesteps == 'auto':
         t_last = positions[0].shape[0]-1
         timesteps = np.linspace(0, t_last, np.prod(nrows_ncols))
@@ -615,9 +625,13 @@ def plot_panel(positions, axes, timesteps='auto',
                     counter += 1
 
             # set plot colors
-            positions, colors, _ = set_plot_colors(positions, sort,
-                                                   user_colors=user_colors,
-                                                   dark_mode=dark_mode)
+            colors, cmaps = set_plot_colors(positions,
+                                            user_colors=user_colors,
+                                            user_cmaps=user_cmaps,
+                                            cmap_dict=cmap_dict,
+                                            dark_mode=dark_mode)
+            if cmap_dict == None:
+                cmap_dict = {}
             # set limits
             ax = get_ax(0, 0, axs, Nx, Ny)
             ax.set_xlim(-scale, scale)
@@ -645,15 +659,23 @@ def plot_panel(positions, axes, timesteps='auto',
                         timestep = timesteps[counter]
                         ax = get_ax(j, k, axs, Nx, Ny)
                         if sort:
-                            pos_, c, a, _ = sort_positions(pos, timestep,
-                                                           axes, colors)
+                            pos_, c, a, _ = sort_positions(positions, cmap_dict,
+                                                           timestep, axes,
+                                                           colors, cmaps)
                             ax.scatter(pos_[:,ax1], pos_[:,ax2],
-                                       s=0.1, color=c, alpha=a)
+                                       s=s[i], color=c, alpha=a)
+                            if counter == Nx*Ny:
+                                break
                         # default grid plot
                         else:
                             pos_t = pos[timestep]
-                            ax.scatter(pos_t[:,ax1], pos_t[:,ax2],
-                                       s=0.1, color=colors[i])
+                            colors_i = cmap_dict.get(i, None)
+                            if colors_i is not None:
+                                ax.scatter(pos_t[:,ax1], pos_t[:,ax2], s=s[i],
+                                           c=cmap_dict[i], cmap=cmaps[counter%len(cmaps)])
+                            else:
+                                ax.scatter(pos_t[:,ax1], pos_t[:,ax2],
+                                           s=s[i], color=colors[i])
 
                         # timestep legend
                         ax.text(-scale*0.85, scale*0.85,
