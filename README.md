@@ -34,7 +34,7 @@ The MSG_Nbody Python package offers an efficient, fully vectorized and paralleli
 </figure>
 
 <div align="center">
-10:1 merger with 130,000 particles plotted with the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L595">plot_hexpanel</a> function.
+10:1 merger with 130,000 particles plotted with the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L692">plot_hexpanel</a> function.
 </div>
 
 ## Documentation and How to Use
@@ -78,7 +78,7 @@ Because this algorithm calculates the gravitational force from each particle ont
 </figure>
 
 <div align="center">
-Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L769">plot_PVD</a> function.
+Simulated Position-Velocity Diagram of a disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L871">plot_PVD</a> function.
 </div>
 
 ## N-Body Particle-Particle Algorithm
@@ -93,10 +93,10 @@ The integrator saves the phase space coordinates $x,y,z,v_{x},v_{y},v_{z}$, and 
 </figure>
 
 <div align="center">
-Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1101">plot_Ne</a> function.
+Left: Log plot of the energy distribution of a spherical galaxy during a 10:1 merger using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1203">plot_Ne</a> function.
 </div>
 <div align="center">
-Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy using <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L133">plot_3D</a>.
+Right: 3D plot of the perturber disk galaxy after the 10:1 merger with the spherical galaxy using <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L146">plot_3D</a>.
 </div>
 <br>
 
@@ -119,7 +119,7 @@ This would not have been possible without them. I would also like to thank my As
 </figure>
 
 <div align="center">
-Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L445">plot_panel</a> function.
+Grid plot of a merger simulation between a spherical and disk galaxy using the <a href="https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L518">plot_panel</a> function.
 </div>
 
 # Documentation
@@ -168,7 +168,7 @@ P = [40,40,50]
 escape_velocity = compute_escape_velocity(P0[0], P0[1], P0[2], np.sum(glxy_mass))
 ```
 
-The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L259) function allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
+The [concatenate_initial_conditions](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/simulation_setup.py#L266) function allows for the concatenation of an arbitrary number of sets of initial conditions into single ascontiguous positions, velocities, and mass arrays. 
 ```python
 # concatenate 3 sets of galaxy initial conditions, and save the resulting Nx7 initial conditions array to a .txt file
 # where N is the sum of the number of particles in each galaxy
@@ -207,7 +207,7 @@ N_particles = [3000, 3000]
 positions, velocities, potentials = load_simulation_outputs(path_2_snapshots, N_particles)
 ```
 
-For an overview of the simulation, the [plot_panel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L445) and [plot_hexpanel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L595) functions will plot any arbitrary number of timesteps in the format (nrows x ncols).
+For an overview of the simulation, the [plot_panel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L518) and [plot_hexpanel](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L692) functions will plot any arbitrary number of timesteps in the format (nrows x ncols).
 ```python
 # by default plots a 3x3 grid
 axes = [0,1]
@@ -220,7 +220,7 @@ gridsize = 300
 plot_hexpanel(positions, axes, gridsize, t, nrows_ncols)
 ```
 
-To plot a single timestep, use the [plot_2D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L25), [plot_3D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L133), or [plot_hexbin](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L240) functions.
+To plot a single timestep, use the [plot_2D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L27), [plot_3D](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L146), or [plot_hexbin](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L264) functions.
 ```python
 t = 200
 plot_2D(positions, t, [0,1])
@@ -230,25 +230,25 @@ plot_3D(positions, t, elev=90, azim=20)
 plot_hexbin(positions, t, [0,2], gridsize)
 ```
 
-To plot a simulation timestep with density histogram subplots, use the [plot_density_histogram](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L315) function.
+To plot a simulation timestep with density histogram subplots, use the [plot_density_histogram](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L346) function.
 ```python
 # xz projection of timestep 0
 plot_density_histogram(positions, 0, [0,2], sort=True, scale=55)
 ```
 
-We can compute the relative Energy per timestep using the [compute_relative_energy](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1311) function. This returns a list of containing a TxNx1 energy array for each galaxy.
+We can compute the relative Energy per timestep using the [compute_relative_energy](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1421) function. This returns a list of containing a TxNx1 energy array for each galaxy.
 ```python
 energies = compute_relative_energy(velocities, potentials)
 ```
 
-To plot the log distribution of energies for a given galaxy use the [plot_Ne](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1101) function. A list of timesteps to plot can be passed in.
+To plot the log distribution of energies for a given galaxy use the [plot_Ne](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1203) function. A list of timesteps to plot can be passed in.
 ```python
 # plot the log energy distribution of galaxy 1 at timesteps 0, 2600, and 9000
 t = [0, 260, 900]
 plot_Ne(energies[0], t, snapshot_save_rate=10, savefig=True)
 ```
 
-To plot a simulated position-velocity diagram (PVD) of an orthagonal projection of a simulation snapshot along a specified line of sight, use the [plot_PVD](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L769) function.
+To plot a simulated position-velocity diagram (PVD) of an orthagonal projection of a simulation snapshot along a specified line of sight, use the [plot_PVD](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L871) function.
 ```python
 # PVD of galaxy 2 at timestep 2000 along the z line of sight
 timestep = 200
@@ -257,7 +257,7 @@ slice_width = 0.4
 plot_PVD(positions[1], velocities[1], timestep, line_of_sight, slice_wifth, snapshot_save_rate=10)
 ```
 
-To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1516) function.
+To shift the positions and velocities to a specified frame of reference, use the [shift_2_com_frame](https://github.com/elkogerville/MSG_Nbody/blob/main/MSG_Nbody/analysis.py#L1628) function.
 ```python
 # shift all particles to simulation center of mass frame
 positions, velocities = shift_2_com_frame(positions, velocities, masses)
