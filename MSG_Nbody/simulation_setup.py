@@ -218,15 +218,15 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
             accel, potential = compute_accel_potential(pos_com, gal_mass, accel,
                                                        p, softening_sq, N)
             # set plot colors
-            pos_com, colors, _ = set_plot_colors(pos_com, False,
-                                                 cmap='rainbow_r',
-                                                 dark_mode=dark_mode)
+            colors, _ = set_plot_colors(pos_com,
+                                        cmap='rainbow_r',
+                                        dark_mode=dark_mode)
             colors = colors[:N]
             # plot initial center of mass location with '+'
             total_pos = np.concatenate(positions, axis=0)
             total_masses = np.concatenate(masses, axis=0)
             total_com = np.sum(total_pos*total_masses, axis=0)/np.sum(total_masses)
-            ax[0].scatter(total_com[0], total_com[1], s=100, marker='+', c='k')
+            ax[0].scatter(total_com[0], total_com[1], s=100, marker='+', c='k', label='initial COM')
             ax[1].scatter(total_com[0], total_com[2], s=100, marker='+', c='k')
             # nbody simulation loop
             for i in tqdm(range(timesteps)):
@@ -247,7 +247,7 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
                 ax[1].scatter(pos_com[:,0], pos_com[:,2], s=0.1, c=colors)
             # plot last timestep markers
             ax[0].scatter(pos_com[:,0], pos_com[:,1], s=120, c=colors,
-                          marker='*', edgecolors='skyblue')
+                          marker='*', edgecolors='skyblue', label='last timestep')
             ax[1].scatter(pos_com[:,0], pos_com[:,2], s=120, c=colors,
                           marker='*', edgecolors='skyblue')
             # plot each galaxy initial conditions if true
@@ -257,6 +257,7 @@ def plot_orbital_trajectory(positions, initial_vels, masses, dt,
                                   s=3, alpha=0.05, zorder=0)
                     ax[1].scatter(pos[:,0], pos[:,2], color=colors[i],
                                   s=3, alpha=0.05, zorder=0)
+            ax[0].legend()
             plt.tight_layout()
             if savefig:
                 save_figure_2_disk(dpi)
