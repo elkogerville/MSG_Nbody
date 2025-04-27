@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MSG_Nbody"
-version = "0.2.5"
+version = "0.2.6"
 description = "Nbody simulation code for galaxy interactions"
 authors = [
     {name = "Elko Gerville-Reache", email = "elkogerville@gmail.com"},
