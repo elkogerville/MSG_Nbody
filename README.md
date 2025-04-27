@@ -22,7 +22,7 @@ $ pip install MSG_Nbody
 
 ## See: [Documentation](#documentation)
 ### The following are example programs of galaxy mergers with varying number of particles. <br>
-• How to simulate and analyze a 10:1 merger of a spherical galaxy and a disk galaxy with 130,000 particles [MSG Documentation NGC 1316 Merger](DOCUMENTATION/NGC1316_Merger.ipynb)
+• How to simulate and analyze a 10:1 merger of a spherical galaxy and a disk galaxy with 130,000 particles [MSG Documentation NGC 1316](DOCUMENTATION/NGC1316_Merger.ipynb)
 
 • How to simulate and analyze a 10:1 minor merger of two disk galaxies with 6000 particles: [MSG Nbody Documentation Notebook](DOCUMENTATION/MSG_Nbody_Documentation.ipynb).
 
