@@ -48,4 +48,4 @@ mass_list = [sphr_mass, disk_mass]
 positions, velocities, masses = concatenate_initial_conditions(pos_list, vel_list, mass_list)
 
 # run N-body simulation
-MSG_nbody(positions, velocities, masses, 0.1, 7000, snapshot_save_rate=10)
+MSG_Nbody(positions, velocities, masses, 0.1, 7000, snapshot_save_rate=10)
