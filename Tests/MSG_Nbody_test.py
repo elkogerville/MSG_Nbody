@@ -69,4 +69,4 @@ plot_orbital_trajectory(pos_list, vel_list, mass_list, dt,
 plt.close()
 
 # run N-body simulation
-MSG_nbody(positions, velocities, masses, 0.1, 2000, snapshot_save_rate=10)
+MSG_Nbody(positions, velocities, masses, 0.1, 2000, snapshot_save_rate=10)
