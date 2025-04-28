@@ -75,6 +75,6 @@ for t in tqdm(range(timesteps)):
     camera.snap()
 plt.close()
 
+# generate animation
 animation = camera.animate()
-plt.close()
 animation.save(animation_name, dpi=dpi, fps=timesteps/animation_length)
