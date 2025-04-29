@@ -96,7 +96,7 @@ def compute_accel_potential(pos, mass, accel, potential,
             r = np.sqrt(delx**2 + dely**2 + delz**2 + softening_sq)
             # inverse distance matrix
             inv_r = 1/r
-            # if computing acceleration of a block onto itself, zero diagonal
+            # if computing acceleration of a block onto itself: zero diagonal
             # these represent the potential of a particle
             # onto itself which is unphysical
             if i == j:
