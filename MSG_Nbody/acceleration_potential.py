@@ -3,8 +3,8 @@ Author: Elko Gerville-Reache
 Date Created: 2023-05-20
 Date Modified: 2025-04-13
 Description:
-    function for the computation of the gravitational acceleration and potential
-    experienced by a group of particles due to their combined gravitational attraction
+function for the computation of the gravitational acceleration and potential
+experienced by a group of particles due to their combined gravitational attraction
                     rⱼ-rᵢ                             mⱼ
      gᵢ = G∑ⱼmⱼ–––––––––––––––––    (1)    ϕᵢ = G∑ⱼ–––––––––    (2)
                [|rⱼ-rᵢ|² + ϵ²]³ᐟ²                  |rⱼ-rᵢ+ϵ²|
